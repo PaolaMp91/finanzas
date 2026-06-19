@@ -7,264 +7,290 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root{
-    --bg:#0d1117; --panel:#161b22; --panel2:#1c2430; --border:#2a3441;
-    --txt:#e6edf3; --muted:#8b97a7; --accent:#3fb6ff; --accent2:#7ee787;
-    --warn:#f0a35e; --bad:#ff6b6b; --good:#52d987; --chip:#21304a;
+    --navy:#0f2c4d; --navy2:#16406e; --blue:#1f73c4; --sky:#e8f0fa;
+    --gold:#c9a227; --teal:#0f9d8c;
+    --bg:#eef1f6; --card:#ffffff; --line:#e2e8f0;
+    --txt:#1c2733; --muted:#67748a; --soft:#8a96a8;
+    --good:#1f9d57; --bad:#d64545; --warn:#d98a1f;
+    --shadow:0 1px 3px rgba(16,35,60,.07),0 6px 18px rgba(16,35,60,.05);
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"Segoe UI",system-ui,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.45;font-size:14px}
-  .wrap{max-width:1320px;margin:0 auto;padding:22px}
-  header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:22px}
-  header.top h1{font-size:23px;font-weight:650;letter-spacing:.2px}
-  header.top .sub{color:var(--muted);font-size:13px;margin-top:3px}
-  .badge{background:var(--chip);color:var(--accent);padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;display:inline-block}
-  .scenario-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:20px}
-  .scenario-bar .lbl{color:var(--muted);font-size:12px;margin-right:4px;text-transform:uppercase;letter-spacing:.5px}
-  .sbtn{background:var(--panel);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
-  .sbtn:hover{border-color:var(--accent);color:var(--txt)}
-  .sbtn.active{background:var(--accent);border-color:var(--accent);color:#06121f}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.45;font-size:14px}
+  .wrap{max-width:1340px;margin:0 auto;padding:0 22px 50px}
+
+  /* ===== Brand bar ===== */
+  .brand{background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 55%,#1d4f86 100%);color:#fff;padding:22px 0;margin-bottom:26px;box-shadow:var(--shadow)}
+  .brand .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;padding-bottom:0}
+  .brand .logo{display:flex;align-items:center;gap:14px}
+  .brand .mark{width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,var(--gold),#e6c560);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:19px;letter-spacing:-1px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .brand h1{font-size:21px;font-weight:650;letter-spacing:.2px}
+  .brand .sub{color:#b9cce4;font-size:12.5px;margin-top:2px}
+  .brand .meta{text-align:right;font-size:12.5px;color:#cdddf0}
+  .brand .meta .corte{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:20px;font-weight:600;color:#fff}
+  .brand .meta b{color:#fff}
+
+  /* ===== Scenario bar ===== */
+  .scenario-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:24px}
+  .scenario-bar .lbl{color:var(--muted);font-size:11.5px;margin-right:4px;text-transform:uppercase;letter-spacing:.7px;font-weight:700}
+  .sbtn{background:var(--card);border:1px solid var(--line);color:var(--muted);padding:9px 15px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;box-shadow:var(--shadow)}
+  .sbtn:hover{border-color:var(--blue);color:var(--navy)}
+  .sbtn.active{background:var(--navy);border-color:var(--navy);color:#fff}
+
   section{margin-bottom:30px}
-  h2.sec{font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:13px;border-left:3px solid var(--accent);padding-left:9px}
-  .grid{display:grid;gap:14px}
-  .g4{grid-template-columns:repeat(4,1fr)}
-  .g3{grid-template-columns:repeat(3,1fr)}
-  .g2{grid-template-columns:repeat(2,1fr)}
-  @media(max-width:960px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
-  @media(max-width:560px){.g4,.g3{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
-  .kpi .k-label{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-  .kpi .k-val{font-size:27px;font-weight:700;margin-top:6px;letter-spacing:.3px}
-  .kpi .k-sub{color:var(--muted);font-size:12px;margin-top:4px}
-  .kpi.hl .k-val{color:var(--accent)}
-  .kpi.good .k-val{color:var(--good)}
-  .kpi.warn .k-val{color:var(--warn)}
-  .split{display:flex;gap:18px;align-items:baseline}
-  .split .p{flex:1}
-  .split .p .t{font-size:11px;color:var(--muted);text-transform:uppercase}
-  .split .p .v{font-size:19px;font-weight:700;margin-top:2px}
+  h2.sec{font-size:12.5px;text-transform:uppercase;letter-spacing:1.1px;color:var(--navy);font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+  h2.sec::before{content:"";width:4px;height:15px;background:var(--gold);border-radius:3px;display:inline-block}
+  .tag{font-size:10.5px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:20px;text-transform:uppercase}
+  .tag.f1{background:#e7f3ec;color:var(--good)} .tag.f2{background:var(--sky);color:var(--blue)} .tag.all{background:#fbf2dc;color:#9a7b15}
+
+  .grid{display:grid;gap:15px}
+  .g5{grid-template-columns:repeat(5,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:1050px){.g5,.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+  @media(max-width:560px){.g5,.g4,.g3{grid-template-columns:1fr}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:17px;box-shadow:var(--shadow)}
+  .kpi .k-label{color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .k-val{font-size:26px;font-weight:750;margin-top:7px;letter-spacing:.2px;color:var(--navy)}
+  .kpi .k-sub{color:var(--soft);font-size:11.5px;margin-top:5px}
+  .kpi.hero{background:linear-gradient(150deg,var(--navy),var(--navy2));border:none}
+  .kpi.hero .k-label{color:#a9c2e0} .kpi.hero .k-val{color:#fff} .kpi.hero .k-sub{color:#94aece}
+  .kpi.accent .k-val{color:var(--teal)} .kpi.gold .k-val{color:var(--gold)} .kpi.warn .k-val{color:var(--warn)}
+
+  .split{display:flex;gap:16px;flex-wrap:wrap}
+  .split .p{flex:1;min-width:120px}
+  .split .p .t{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+  .split .p .v{font-size:18px;font-weight:700;margin-top:3px;color:var(--navy)}
+
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--border)}
+  th,td{text-align:right;padding:9px 11px;border-bottom:1px solid var(--line)}
   th:first-child,td:first-child{text-align:left}
-  thead th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
-  tbody tr:hover{background:var(--panel2)}
-  tfoot td{font-weight:700;border-top:2px solid var(--border);border-bottom:none}
+  thead th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;background:#f7f9fc}
+  tbody tr:hover{background:#f6f9fd}
+  tfoot td{font-weight:700;border-top:2px solid var(--navy);border-bottom:none;color:var(--navy)}
   .bar-cell{position:relative}
-  .bar-cell .barfill{position:absolute;left:0;top:0;bottom:0;background:rgba(63,182,255,.14);z-index:0}
+  .bar-cell .barfill{position:absolute;left:0;top:3px;bottom:3px;background:linear-gradient(90deg,rgba(31,115,196,.16),rgba(31,115,196,.05));border-radius:0 4px 4px 0;z-index:0}
   .bar-cell span{position:relative;z-index:1}
-  .chart-box{position:relative;height:300px}
-  .chart-box.sm{height:260px}
-  .pill{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
-  .pill.ok{background:rgba(82,217,135,.15);color:var(--good)}
-  .pill.no{background:rgba(255,107,107,.15);color:var(--bad)}
-  .note{color:var(--muted);font-size:12px;margin-top:10px;font-style:italic}
-  td[contenteditable]{background:rgba(63,182,255,.06);cursor:text;outline:none}
-  td[contenteditable]:focus{background:rgba(63,182,255,.16);box-shadow:inset 0 0 0 1px var(--accent)}
-  .pos{color:var(--good)} .neg{color:var(--bad)}
-  footer{color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding-top:16px;margin-top:10px}
-  footer code{background:var(--panel2);padding:1px 6px;border-radius:4px;color:var(--accent)}
-  .legend-row{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:8px}
-  .legend-row b{color:var(--txt)}
+  .chart-box{position:relative;height:300px} .chart-box.sm{height:265px}
+  .pill{font-size:11px;padding:2px 9px;border-radius:11px;font-weight:700}
+  .pill.ok{background:#e7f3ec;color:var(--good)} .pill.no{background:#fbe9e9;color:var(--bad)}
+  .note{color:var(--soft);font-size:11.5px;margin-top:11px;font-style:italic}
+  td[contenteditable]{background:#eaf3fb;cursor:text;outline:none;border-radius:4px}
+  td[contenteditable]:focus{background:#dceafa;box-shadow:inset 0 0 0 1.5px var(--blue)}
+  .pos{color:var(--good);font-weight:600} .neg{color:var(--bad);font-weight:600}
+  footer{color:var(--muted);font-size:11.5px;border-top:1px solid var(--line);padding-top:18px;margin-top:14px}
+  footer code{background:#eef2f7;padding:1px 6px;border-radius:4px;color:var(--navy);font-size:11px}
+  .legend-row{display:flex;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
+  .legend-row b{color:var(--navy)}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header class="top">
-    <div>
-      <h1>Boulevard Sur Club Residencial</h1>
-      <div class="sub">Dashboard Financiero · Mixco, Guatemala · Periferia Urbana</div>
+  <div class="brand">
+    <div class="wrap">
+      <div class="logo">
+        <div class="mark">PU</div>
+        <div>
+          <h1>Boulevard Sur Club Residencial</h1>
+          <div class="sub">Dashboard Financiero Consolidado · San Cristóbal, Mixco · Periferia Urbana</div>
+        </div>
+      </div>
+      <div class="meta">
+        <span class="corte">Corte: 17 de junio de 2026</span>
+        <div style="margin-top:7px">Tasa de crédito bancario: <b>8.0% anual</b> · Moneda: <b>Quetzales (Q)</b></div>
+      </div>
     </div>
-    <div style="text-align:right">
-      <span class="badge">Corte: 17 de junio de 2026</span>
-      <div class="sub" style="margin-top:6px">Tasa de crédito bancario: <b id="hdrTasa">8.0% anual</b></div>
-    </div>
-  </header>
-
-  <!-- ============ SELECTOR DE ESCENARIO ============ -->
-  <div class="scenario-bar">
-    <span class="lbl">Escenario Fase 2:</span>
-    <button class="sbtn" data-e="E1">E1 · Costos +7.25%</button>
-    <button class="sbtn" data-e="E2">E2 · Costos +15%</button>
-    <button class="sbtn" data-e="E3">E3 · Precios +7.25%</button>
-    <button class="sbtn" data-e="E4">E4 · Retraso TD</button>
   </div>
 
-  <!-- ============ KPIs PRINCIPALES ============ -->
-  <section>
-    <div class="grid g4">
-      <div class="card kpi hl"><div class="k-label">TIR Accionistas</div><div class="k-val" id="kTirAcc">—</div><div class="k-sub">Retorno sobre capital (Fase 2)</div></div>
-      <div class="card kpi"><div class="k-label">TIR Proyecto</div><div class="k-val" id="kTirProy">—</div><div class="k-sub">Rentabilidad del proyecto</div></div>
-      <div class="card kpi good"><div class="k-label">Margen de Proyecto</div><div class="k-val" id="kMargen">—</div><div class="k-sub">Margen neto sobre ventas</div></div>
-      <div class="card kpi good"><div class="k-label">Utilidad Proyectada</div><div class="k-val" id="kUtil">—</div><div class="k-sub">Utilidad neta estimada</div></div>
-    </div>
-    <div class="grid g4" style="margin-top:14px">
-      <div class="card kpi"><div class="k-label">Total Ventas</div><div class="k-val" id="kVentas">—</div><div class="k-sub">Ingresos proyectados</div></div>
-      <div class="card kpi"><div class="k-label">Inversión Total</div><div class="k-val" id="kInv">—</div><div class="k-sub">Proyecto completo (F1+F2)</div></div>
-      <div class="card kpi warn"><div class="k-label">Requerimiento de Capital</div><div class="k-val" id="kCap">—</div><div class="k-sub" id="kCapSub">Aporte adicional de socios</div></div>
-      <div class="card kpi"><div class="k-label">Años de Ejecución</div><div class="k-val" id="kAnios">—</div><div class="k-sub" id="kAniosSub">—</div></div>
-    </div>
-  </section>
+  <div class="wrap">
 
-  <!-- ============ UNIDADES Y PARQUEOS ============ -->
-  <section>
-    <h2 class="sec">Unidades a la Venta y Parqueos</h2>
-    <div class="grid g3">
-      <div class="card kpi hl"><div class="k-label">Total Apartamentos</div><div class="k-val">488</div><div class="k-sub">2 Dorm.: 334 · 3 Dorm.: 154 (Fase 2)</div></div>
-      <div class="card kpi"><div class="k-label">Fase 1 (residencial)</div><div class="k-val">Torres A·B·C</div><div class="k-sub">En desarrollo</div></div>
-      <div class="card kpi"><div class="k-label">Fase 2 (en evaluación)</div><div class="k-val">488 unid.</div><div class="k-sub">Torre D 196 · Torre E 196 · Torre F 96</div></div>
-    </div>
-    <div class="grid g2" style="margin-top:14px">
-      <div class="card">
-        <h2 class="sec" style="border:none;padding:0;margin-bottom:10px">Composición de Torres · Fase 2</h2>
-        <table>
-          <thead><tr><th>Torre</th><th>Niveles</th><th>Aptos</th><th>Área Constr. (m²)</th><th>Área Vendible (m²)</th></tr></thead>
-          <tbody>
-            <tr><td>Torre D</td><td>14</td><td>196</td><td>12,765.32</td><td>11,476.98</td></tr>
-            <tr><td>Torre E</td><td>14</td><td>196</td><td>12,765.32</td><td>11,476.98</td></tr>
-            <tr><td>Torre F</td><td>12</td><td>96</td><td>6,631.95</td><td>5,937.70</td></tr>
-            <tr><td>TP2 (parqueos)</td><td>4</td><td>—</td><td>4,846.00</td><td>3,250.00</td></tr>
-          </tbody>
-          <tfoot><tr><td>TOTAL</td><td>—</td><td>488</td><td>37,008.59</td><td>32,141.66</td></tr></tfoot>
-        </table>
+    <!-- ============ RESUMEN CONSOLIDADO ============ -->
+    <section>
+      <h2 class="sec">Resumen Consolidado del Proyecto <span class="tag all">Fase 1 + Fase 2</span></h2>
+      <div class="grid g4">
+        <div class="card kpi hero"><div class="k-label">Total Apartamentos</div><div class="k-val">704</div><div class="k-sub">Fase 1: 216 · Fase 2: 488</div></div>
+        <div class="card kpi hero"><div class="k-label">Total Parqueos</div><div class="k-val">875</div><div class="k-sub">Fase 1: 321 · Fase 2: 594 (neto)</div></div>
+        <div class="card kpi"><div class="k-label">Total Ventas</div><div class="k-val" id="kVentas">—</div><div class="k-sub">Ingresos proyectados del proyecto</div></div>
+        <div class="card kpi"><div class="k-label">Inversión Total</div><div class="k-val" id="kInv">—</div><div class="k-sub">Inversión proyectada total</div></div>
       </div>
-      <div class="card">
-        <h2 class="sec" style="border:none;padding:0;margin-bottom:10px">Parqueos</h2>
-        <div class="grid g3">
-          <div class="card kpi" style="background:var(--panel2)"><div class="k-label">Fase 1 (TP1)</div><div class="k-val">321</div><div class="k-sub">Torre + calle</div></div>
-          <div class="card kpi" style="background:var(--panel2)"><div class="k-label">Fase 2 (TP2)</div><div class="k-val">594</div><div class="k-sub">Incl. 40 extras de F1</div></div>
-          <div class="card kpi hl" style="background:var(--panel2)"><div class="k-label">Total Proyecto</div><div class="k-val">875</div><div class="k-sub">Neto (sin doble conteo)</div></div>
+      <div class="grid g5" style="margin-top:15px">
+        <div class="card kpi gold"><div class="k-label">TIR Accionistas</div><div class="k-val" id="kTirAcc">—</div><div class="k-sub">Retorno sobre capital</div></div>
+        <div class="card kpi accent"><div class="k-label">TIR Proyecto</div><div class="k-val" id="kTirProy">—</div><div class="k-sub">Rentabilidad del proyecto</div></div>
+        <div class="card kpi accent"><div class="k-label">Margen de Proyecto</div><div class="k-val" id="kMargen">—</div><div class="k-sub">Margen neto</div></div>
+        <div class="card kpi"><div class="k-label">Utilidad Proyectada</div><div class="k-val" id="kUtil">—</div><div class="k-sub">Utilidad neta estimada</div></div>
+        <div class="card kpi warn"><div class="k-label">Req. de Capital</div><div class="k-val" id="kCap" style="font-size:22px">—</div><div class="k-sub" id="kCapSub">Aporte adicional socios</div></div>
+      </div>
+      <div class="scenario-bar" style="margin-top:18px">
+        <span class="lbl">Escenario financiero (Fase 2):</span>
+        <button class="sbtn" data-e="E1">E1 · Costos +7.25%</button>
+        <button class="sbtn" data-e="E2">E2 · Costos +15%</button>
+        <button class="sbtn" data-e="E3">E3 · Precios +7.25%</button>
+        <button class="sbtn" data-e="E4">E4 · Retraso TD</button>
+      </div>
+    </section>
+
+    <!-- ============ UNIDADES POR FASE ============ -->
+    <section>
+      <h2 class="sec">Unidades a la Venta por Fase</h2>
+      <div class="grid g2">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong style="color:var(--navy)">Fase 1 — Residencial</strong><span class="tag f1">En desarrollo</span>
+          </div>
+          <table>
+            <thead><tr><th>Torre</th><th>Niveles</th><th>Aptos/nivel</th><th>Aptos</th><th>m² Constr.</th></tr></thead>
+            <tbody>
+              <tr><td>Torre A</td><td>12</td><td>6</td><td>72</td><td>4,781.07</td></tr>
+              <tr><td>Torre B</td><td>12</td><td>6</td><td>72</td><td>4,781.07</td></tr>
+              <tr><td>Torre C</td><td>12</td><td>6</td><td>72</td><td>4,686.66</td></tr>
+            </tbody>
+            <tfoot><tr><td>TOTAL F1</td><td>—</td><td>—</td><td>216</td><td>14,248.80</td></tr></tfoot>
+          </table>
+          <div class="note">Incluye amenidades, garita, urbanización, PTAR, cisterna, pozo y Torre de Parqueos TP1 (321 parqueos).</div>
         </div>
-        <div class="split" style="margin-top:16px">
-          <div class="p"><div class="t">Precio prom. 2D + parqueo</div><div class="v">Q 693,667</div></div>
-          <div class="p"><div class="t">Precio prom. 3D + parqueo</div><div class="v">Q 698,697</div></div>
-          <div class="p"><div class="t">Precio promedio apto</div><div class="v">Q 695,720</div></div>
-        </div>
-        <div class="note">Escrituraciones proyectadas: 38/mes · Absorción base: 17 aptos/mes · 13 meses de entregas en Fase 2.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ COMPARATIVO ESCENARIOS ============ -->
-  <section>
-    <h2 class="sec">Comparativo de Escenarios · Fase 2</h2>
-    <div class="grid g2">
-      <div class="card">
-        <div class="chart-box"><canvas id="chTir"></canvas></div>
-      </div>
-      <div class="card">
-        <table>
-          <thead><tr><th>Escenario</th><th>Ventas</th><th>Utilidad</th><th>Margen</th><th>TIR Proy.</th><th>TIR Acc.</th></tr></thead>
-          <tbody id="tblEsc"></tbody>
-        </table>
-        <div class="note">Mejor desempeño: E3 (precios +7.25%) → TIR 33.07%. Mayor riesgo: E4 (retraso Torre D) → TIR 24.61%.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ RESUMEN DE COSTOS ============ -->
-  <section>
-    <h2 class="sec">Resumen de Costos · Presupuesto de Inversión Fase 2</h2>
-    <div class="grid g2">
-      <div class="card">
-        <table>
-          <thead><tr><th>Partida</th><th>Monto (Q)</th><th>%</th></tr></thead>
-          <tbody id="tblCostos"></tbody>
-          <tfoot><tr><td>INVERSIÓN TOTAL FASE 2</td><td id="costTotal"></td><td>100.0%</td></tr></tfoot>
-        </table>
-      </div>
-      <div class="card">
-        <div class="chart-box"><canvas id="chCostos"></canvas></div>
-        <div class="legend-row">
-          <span>Tasa de banco (crédito construcción): <b>8.0% anual</b></span>
-          <span>Gastos financieros F2: <b>Q 18.89 M</b></span>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong style="color:var(--navy)">Fase 2 — Residencial</strong><span class="tag f2">En evaluación</span>
+          </div>
+          <table>
+            <thead><tr><th>Torre</th><th>Niveles</th><th>Aptos</th><th>m² Constr.</th><th>m² Vendible</th></tr></thead>
+            <tbody>
+              <tr><td>Torre D</td><td>14</td><td>196</td><td>12,765.32</td><td>11,476.98</td></tr>
+              <tr><td>Torre E</td><td>14</td><td>196</td><td>12,765.32</td><td>11,476.98</td></tr>
+              <tr><td>Torre F</td><td>12</td><td>96</td><td>6,631.95</td><td>5,937.70</td></tr>
+              <tr><td>TP2 (parqueos)</td><td>4</td><td>—</td><td>4,846.00</td><td>3,250.00</td></tr>
+            </tbody>
+            <tfoot><tr><td>TOTAL F2</td><td>—</td><td>488</td><td>37,008.59</td><td>32,141.66</td></tr></tfoot>
+          </table>
+          <div class="note">Mezcla F2 → 2 dorm.: 334 unid. · 3 dorm.: 154 unid. · 594 parqueos (incl. 40 extras de F1).</div>
         </div>
       </div>
-    </div>
-  </section>
+      <div class="grid g4" style="margin-top:15px">
+        <div class="card kpi"><div class="k-label">Total Apartamentos</div><div class="k-val">704</div><div class="k-sub">F1: 216 · F2: 488</div></div>
+        <div class="card kpi"><div class="k-label">Total Parqueos (neto)</div><div class="k-val">875</div><div class="k-sub">F1: 321 · F2: 594 − 40</div></div>
+        <div class="card kpi"><div class="k-label">Precio prom. apto (F2)</div><div class="k-val" style="font-size:21px">Q 695,720</div><div class="k-sub">2D+parq: Q693,667 · 3D+parq: Q698,697</div></div>
+        <div class="card kpi"><div class="k-label">Ritmo comercial</div><div class="k-val" style="font-size:21px">17 / mes</div><div class="k-sub">Absorción · Escrituraciones 38/mes</div></div>
+      </div>
+    </section>
 
-  <!-- ============ CRONOGRAMA Y CAPITAL ============ -->
-  <section>
-    <h2 class="sec">Cronograma de Ejecución y Requerimientos de Capital</h2>
-    <div class="grid g4">
-      <div class="card kpi"><div class="k-label">Inicio de Obra</div><div class="k-val" style="font-size:21px">Feb 2027</div><div class="k-sub">Movimiento de tierras · Constr. Torre D: May 2027</div></div>
-      <div class="card kpi"><div class="k-label">Entrega del Proyecto</div><div class="k-val" style="font-size:21px" id="cFin">Feb 2030</div><div class="k-sub" id="cFinSub">Últimas entregas Fase 2</div></div>
-      <div class="card kpi"><div class="k-label">Inicio Crédito Bancario</div><div class="k-val" style="font-size:21px" id="cCred">Feb 2027</div><div class="k-sub">Fin crédito: Feb 2030</div></div>
-      <div class="card kpi warn"><div class="k-label">Capital Adicional Requerido</div><div class="k-val" style="font-size:21px" id="cCap">—</div><div class="k-sub" id="cCapSub">—</div></div>
-    </div>
-    <div class="card" style="margin-top:14px">
-      <h2 class="sec" style="border:none;padding:0;margin-bottom:10px">Financiamiento Fase 1 · Comparativo Bancario (BI vs G&T)</h2>
-      <table>
-        <thead><tr><th>Criterio</th><th>Banco Industrial (BI)</th><th>G&T Continental</th></tr></thead>
-        <tbody>
-          <tr><td>Monto autorizado</td><td>Q 105,000,000</td><td>Q 99,000,000</td></tr>
-          <tr><td>Tasa de interés</td><td>8.00%</td><td>8.25%</td></tr>
-          <tr><td>Capital adicional requerido (aportado)</td><td>Q 10,768,969</td><td>Q 12,186,458</td></tr>
-          <tr><td>TIR socios</td><td>31.20%</td><td>30.91%</td></tr>
-          <tr><td>Comisión bancaria</td><td>Pendiente</td><td><span class="pill ok">No cobra</span></td></tr>
-          <tr><td>Garantía</td><td>Fideicomiso</td><td>Hipotecaria</td></tr>
-        </tbody>
-      </table>
-      <div class="note">Recomendación de Gerencia (21-05-2026): proceder con G&T por mayor certeza de desembolso (≈2 semanas antes). Diferencia de costo financiero estimada: Q 274,564.76 · Diferencia TIR socios: 0.29 p.p.</div>
-    </div>
-  </section>
+    <!-- ============ COMPARATIVO ESCENARIOS ============ -->
+    <section>
+      <h2 class="sec">Indicadores Financieros por Escenario <span class="tag f2">Fase 2</span></h2>
+      <div class="grid g2">
+        <div class="card"><div class="chart-box"><canvas id="chTir"></canvas></div></div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Escenario</th><th>Ventas</th><th>Utilidad</th><th>Margen</th><th>TIR Proy.</th><th>TIR Acc.</th></tr></thead>
+            <tbody id="tblEsc"></tbody>
+          </table>
+          <div class="note">Mejor desempeño: E3 (precios +7.25%) → TIR 33.07%, utilidad Q60.7M. Mayor riesgo: E4 (retraso Torre D) → TIR 24.61%, requiere +Q4.0M de capital.</div>
+        </div>
+      </div>
+    </section>
 
-  <!-- ============ RESUMEN DE DESEMBOLSOS ============ -->
-  <section>
-    <h2 class="sec">Resumen de Desembolsos del Crédito</h2>
-    <div class="card">
-      <table>
-        <thead><tr><th>Concepto</th><th>Detalle</th><th>Monto (Q)</th></tr></thead>
-        <tbody>
-          <tr><td>Monto de crédito autorizado (F1)</td><td>Banco Industrial</td><td>105,000,000</td></tr>
-          <tr><td>Mecánica de desembolso</td><td>Contraseña + reportes trimestrales de avance</td><td>—</td></tr>
-          <tr><td>Capital de socios aportado (F1)</td><td>Requerimiento BI</td><td>10,768,969</td></tr>
-          <tr><td>Crédito Fase 2</td><td>Inicio Feb 2027 · Fin Feb 2030 · 8.0% anual</td><td>—</td></tr>
-          <tr><td>Gastos financieros proyectados (F2)</td><td>Intereses del crédito de construcción</td><td>18,891,608</td></tr>
-          <tr><td>Aporte adicional de capital (escenario E4)</td><td>Retraso Torre D</td><td>4,000,000</td></tr>
-        </tbody>
-      </table>
-      <div class="note">El calendario detallado de desembolsos por avance de obra se administra en el archivo maestro <code>PU PROJECT 94M Escenario BI</code> (Teams › Boulevard Sur › Flujo Financiero). Edite los montos arriba para ajustar el resumen.</div>
-    </div>
-  </section>
+    <!-- ============ RESUMEN DE COSTOS ============ -->
+    <section>
+      <h2 class="sec">Resumen de Costos · Presupuesto de Inversión <span class="tag f2">Fase 2</span></h2>
+      <div class="grid g2">
+        <div class="card">
+          <table>
+            <thead><tr><th>Partida</th><th>Monto (Q)</th><th>%</th></tr></thead>
+            <tbody id="tblCostos"></tbody>
+            <tfoot><tr><td>INVERSIÓN TOTAL FASE 2</td><td id="costTotal"></td><td>100.0%</td></tr></tfoot>
+          </table>
+        </div>
+        <div class="card">
+          <div class="chart-box"><canvas id="chCostos"></canvas></div>
+          <div class="legend-row">
+            <span>Tasa de banco: <b>8.0% anual</b></span>
+            <span>Gastos financieros F2: <b>Q 18.89 M</b></span>
+            <span>Impuestos F2: <b>Q 17.71 M</b></span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  <!-- ============ FLUJO DE COSTOS POR MES ============ -->
-  <section>
-    <h2 class="sec">Flujo de Costos por Mes · Proyectado vs. Real</h2>
-    <div class="card">
-      <div class="chart-box"><canvas id="chFlujo"></canvas></div>
-    </div>
-    <div class="card" style="margin-top:14px">
-      <table>
-        <thead><tr><th>Mes</th><th>Proyectado (Q)</th><th>Real (Q) · editable</th><th>Variación (Q)</th><th>Var. %</th><th>% Avance acum.</th></tr></thead>
-        <tbody id="tblFlujo"></tbody>
-        <tfoot><tr><td>TOTAL</td><td id="flProy"></td><td id="flReal"></td><td id="flVar"></td><td id="flVarPct"></td><td>100%</td></tr></tfoot>
-      </table>
-      <div class="note">La columna <b>Real</b> es editable (clic para escribir el ejecutado del mes); la variación, % y la gráfica se recalculan automáticamente. La curva proyectada es un modelo S-curve del Presupuesto General de Construcción (Q 156.4 M) distribuido sobre el período de obra; reemplácela con el flujo mensual del archivo maestro cuando esté disponible.</div>
-    </div>
-  </section>
+    <!-- ============ CRONOGRAMA ============ -->
+    <section>
+      <h2 class="sec">Cronograma de Ejecución <span class="tag all">Consolidado</span></h2>
+      <div class="grid g4">
+        <div class="card kpi"><div class="k-label">Estado Fase 1</div><div class="k-val" style="font-size:19px">En obra</div><div class="k-sub">Mov. tierras / contenciones / pozo</div></div>
+        <div class="card kpi"><div class="k-label">Inicio de Obra (F2)</div><div class="k-val" style="font-size:19px">Feb 2027</div><div class="k-sub">Constr. Torre D: May 2027</div></div>
+        <div class="card kpi"><div class="k-label">Entrega del Proyecto</div><div class="k-val" style="font-size:19px" id="cFin">Feb 2030</div><div class="k-sub" id="cFinSub">Últimas entregas Fase 2</div></div>
+        <div class="card kpi"><div class="k-label">Años de Ejecución (F2)</div><div class="k-val" style="font-size:19px" id="kAnios">3.0 años</div><div class="k-sub" id="kAniosSub">Feb 2027 → Feb 2030</div></div>
+      </div>
+    </section>
 
-  <footer>
-    <b>Fuentes:</b> Microsoft Teams · Periferia Urbana › Canal Boulevard Sur › Flujo Financiero —
-    <code>PU PROJECT 94M Escenario BI 31-05-2026</code>,
-    <code>2026-06-17 Escenarios Financieros F2.pptx</code>,
-    <code>2026-21-05 Presentación Financiera</code> (comparativo BI vs G&T) y minuta financiera 11-06-2026.<br/>
-    Dashboard generado el 19-06-2026. Cifras en quetzales (Q). Los escenarios E1–E4 corresponden al análisis de Fase 2; el financiamiento BI/G&T y TIR socios (31.20%) corresponden a Fase 1.
-  </footer>
+    <!-- ============ FINANCIAMIENTO Y DESEMBOLSOS ============ -->
+    <section>
+      <h2 class="sec">Financiamiento y Resumen de Desembolsos</h2>
+      <div class="grid g2">
+        <div class="card">
+          <div style="margin-bottom:8px"><strong style="color:var(--navy)">Comparativo Bancario</strong> <span class="tag f1">Fase 1</span></div>
+          <table>
+            <thead><tr><th>Criterio</th><th>Banco Industrial</th><th>G&amp;T Continental</th></tr></thead>
+            <tbody>
+              <tr><td>Monto autorizado</td><td>Q 105,000,000</td><td>Q 99,000,000</td></tr>
+              <tr><td>Tasa de interés</td><td>8.00%</td><td>8.25%</td></tr>
+              <tr><td>Capital socios (aportado)</td><td>Q 10,768,969</td><td>Q 12,186,458</td></tr>
+              <tr><td>TIR socios</td><td><b>31.20%</b></td><td>30.91%</td></tr>
+              <tr><td>Comisión bancaria</td><td>Pendiente</td><td><span class="pill ok">No cobra</span></td></tr>
+              <tr><td>Garantía</td><td>Fideicomiso</td><td>Hipotecaria</td></tr>
+            </tbody>
+          </table>
+          <div class="note">Recomendación de Gerencia (21-05-2026): proceder con G&amp;T por certeza y velocidad de desembolso (≈2 semanas antes). Diferencia de costo financiero ≈ Q 274,564.76.</div>
+        </div>
+        <div class="card">
+          <div style="margin-bottom:8px"><strong style="color:var(--navy)">Resumen de Desembolsos</strong> <span class="tag all">F1 + F2</span></div>
+          <table>
+            <thead><tr><th>Concepto</th><th>Detalle</th><th>Monto (Q)</th></tr></thead>
+            <tbody>
+              <tr><td>Crédito autorizado F1</td><td>Banco Industrial</td><td>105,000,000</td></tr>
+              <tr><td>Mecánica de desembolso</td><td>Contraseña + reporte trimestral</td><td>—</td></tr>
+              <tr><td>Capital socios aportado F1</td><td>Requerimiento BI</td><td>10,768,969</td></tr>
+              <tr><td>Crédito Fase 2</td><td>Feb 2027 → Feb 2030 · 8.0%</td><td>—</td></tr>
+              <tr><td>Gastos financieros F2</td><td>Intereses construcción</td><td>18,891,608</td></tr>
+              <tr><td>Aporte adicional (E4)</td><td>Retraso Torre D</td><td id="dCap">—</td></tr>
+            </tbody>
+          </table>
+          <div class="note">Calendario detallado de desembolsos por avance de obra en el archivo maestro <code>PU PROJECT 94M Escenario BI</code> (Teams › Boulevard Sur › Flujo Financiero).</div>
+        </div>
+      </div>
+    </section>
 
-</div>
+    <!-- ============ FLUJO MENSUAL ============ -->
+    <section>
+      <h2 class="sec">Flujo de Costos por Mes · Proyectado vs. Real <span class="tag f2">Fase 2</span></h2>
+      <div class="card"><div class="chart-box"><canvas id="chFlujo"></canvas></div></div>
+      <div class="card" style="margin-top:15px">
+        <table>
+          <thead><tr><th>Mes</th><th>Proyectado (Q)</th><th>Real (Q) · editable</th><th>Variación (Q)</th><th>Var. %</th><th>% Avance acum.</th></tr></thead>
+          <tbody id="tblFlujo"></tbody>
+          <tfoot><tr><td>TOTAL</td><td id="flProy"></td><td id="flReal"></td><td id="flVar"></td><td id="flVarPct"></td><td>100%</td></tr></tfoot>
+        </table>
+        <div class="note">La columna <b>Real</b> es editable (clic en la celda): la variación, los porcentajes y la gráfica se recalculan al instante. La curva proyectada es un modelo S-curve del Presupuesto General de Construcción (Q 156.4 M) distribuido sobre el período de obra; reemplácela con el flujo mensual del archivo maestro cuando esté disponible.</div>
+      </div>
+    </section>
+
+    <footer>
+      <b>Fuentes (Microsoft Teams · Periferia Urbana › Canal Boulevard Sur › Flujo Financiero):</b>
+      <code>PU PROJECT 94M Escenario BI 31-05-2026</code>,
+      <code>2026-06-17 Escenarios Financieros F2.pptx</code>,
+      <code>2026-21-05 Presentación Financiera</code>,
+      <code>HANDOVER – Boulevard Sur Club Residencial.pdf</code> (unidades Fase 1) y minuta financiera 11-06-2026.<br/>
+      Dashboard consolidado generado el 19-06-2026. Cifras en quetzales. Los escenarios E1–E4 (ventas, utilidad, margen, TIR e inversión total del proyecto) provienen del análisis de Fase 2; el financiamiento BI/G&amp;T y la TIR de socios (31.20%) corresponden a la Fase 1 en ejecución.
+    </footer>
+
+  </div>
 
 <script>
-/* ====================== DATOS DEL PROYECTO ======================
-   Editables: actualice estos valores con el archivo maestro de Flujo Financiero.
-================================================================ */
+/* ====================== DATOS DEL PROYECTO (editables) ====================== */
 const ESCENARIOS = {
-  E1: {nombre:"E1 · Costos +7.25%",  ventas:483.6, utilidad:47.1, margen:9.74,  tirProy:11.20, tirAcc:28.25, inversion:436.5, capital:0,   finObra:"Feb 2030", credito:"Feb 2027"},
-  E2: {nombre:"E2 · Costos +15%",    ventas:483.6, utilidad:44.1, margen:9.12,  tirProy:10.43, tirAcc:27.09, inversion:439.4, capital:0,   finObra:"Feb 2030", credito:"Feb 2027"},
-  E3: {nombre:"E3 · Precios +7.25%", ventas:502.3, utilidad:60.7, margen:12.08, tirProy:14.07, tirAcc:33.07, inversion:441.6, capital:0,   finObra:"Feb 2030", credito:"Feb 2027"},
-  E4: {nombre:"E4 · Retraso Torre D",ventas:483.6, utilidad:43.1, margen:8.92,  tirProy:9.98,  tirAcc:24.61, inversion:440.5, capital:4.0, finObra:"Oct 2030", credito:"Ene 2028"}
+  E1: {nombre:"E1 · Costos +7.25%",  ventas:483.6, utilidad:47.1, margen:9.74,  tirProy:11.20, tirAcc:28.25, inversion:436.5, capital:0,   finObra:"Feb 2030", anios:"3.0"},
+  E2: {nombre:"E2 · Costos +15%",    ventas:483.6, utilidad:44.1, margen:9.12,  tirProy:10.43, tirAcc:27.09, inversion:439.4, capital:0,   finObra:"Feb 2030", anios:"3.0"},
+  E3: {nombre:"E3 · Precios +7.25%", ventas:502.3, utilidad:60.7, margen:12.08, tirProy:14.07, tirAcc:33.07, inversion:441.6, capital:0,   finObra:"Feb 2030", anios:"3.0"},
+  E4: {nombre:"E4 · Retraso TD",     ventas:483.6, utilidad:43.1, margen:8.92,  tirProy:9.98,  tirAcc:24.61, inversion:440.5, capital:4.0, finObra:"Oct 2030", anios:"3.7"}
 };
 const ORDEN = ["E1","E2","E3","E4"];
-
 const COSTOS = [ // Presupuesto de Inversión Fase 2 (Q)
   ["Presupuesto General de Construcción", 156407557.95],
   ["Gastos Financieros", 18891608.00],
@@ -277,165 +303,91 @@ const COSTOS = [ // Presupuesto de Inversión Fase 2 (Q)
   ["Promoción", 2837783.55],
   ["Varios", 2750496.00],
   ["Trámites Legales", 2517177.60],
-  ["Fianzas y Seguros", 1658829.90],
   ["Imprevistos", 1680000.00],
+  ["Fianzas y Seguros", 1658829.90],
   ["Showroom / Casa Modelo", 473617.20],
   ["Honorarios Arquitectura", 71190.00],
   ["Requerimientos Adicionales", 44756.25]
 ];
-const CONSTRUCCION_TOTAL = 156407557.95; // base para curva mensual
+const CONSTRUCCION_TOTAL = 156407557.95;
 
-/* ====================== UTILIDADES ====================== */
 const fmtM  = v => "Q " + v.toFixed(1) + " M";
 const fmtQ  = v => "Q " + Math.round(v).toLocaleString("es-GT");
 const fmtPct= v => v.toFixed(2) + "%";
 
-/* ====================== KPIs / ESCENARIO ====================== */
 function setEscenario(e){
   const d = ESCENARIOS[e];
-  document.getElementById("kTirAcc").textContent = fmtPct(d.tirAcc);
-  document.getElementById("kTirProy").textContent= fmtPct(d.tirProy);
-  document.getElementById("kMargen").textContent = fmtPct(d.margen);
-  document.getElementById("kUtil").textContent   = fmtM(d.utilidad);
-  document.getElementById("kVentas").textContent = fmtM(d.ventas);
-  document.getElementById("kInv").textContent    = fmtM(d.inversion);
-  document.getElementById("kCap").textContent    = d.capital>0 ? fmtM(d.capital) : "Sin aporte adic.";
-  document.getElementById("kCapSub").textContent = d.capital>0 ? "Requiere aporte de socios" : "No requiere aporte adicional";
-  // años de ejecución
-  const finY = parseInt(d.finObra.split(" ")[1]);
-  const anios = (finY===2030 && d.finObra.startsWith("Oct")) ? "3.7" : "3.0";
-  document.getElementById("kAnios").textContent = anios + " años";
-  document.getElementById("kAniosSub").textContent = "Feb 2027 → " + d.finObra;
-  // cronograma
-  document.getElementById("cFin").textContent = d.finObra;
-  document.getElementById("cCred").textContent= d.credito;
-  document.getElementById("cCap").textContent = d.capital>0 ? fmtM(d.capital) : "No requiere";
-  document.getElementById("cCapSub").textContent = d.capital>0 ? "Escenario "+e+" (retraso)" : "Escenarios E1–E3";
+  kTirAcc.textContent=fmtPct(d.tirAcc); kTirProy.textContent=fmtPct(d.tirProy);
+  kMargen.textContent=fmtPct(d.margen); kUtil.textContent=fmtM(d.utilidad);
+  kVentas.textContent=fmtM(d.ventas);   kInv.textContent=fmtM(d.inversion);
+  kCap.textContent = d.capital>0 ? fmtM(d.capital) : "Sin aporte";
+  kCapSub.textContent = d.capital>0 ? "Requiere aporte de socios" : "No requiere aporte adicional";
+  cFin.textContent=d.finObra; cFinSub.textContent = "Escenario "+e;
+  kAnios.textContent=d.anios+" años"; kAniosSub.textContent="Feb 2027 → "+d.finObra;
+  dCap.textContent = d.capital>0 ? fmtQ(d.capital*1e6) : "—";
   document.querySelectorAll(".sbtn").forEach(b=>b.classList.toggle("active", b.dataset.e===e));
   if(window._chTir) highlightTir(e);
 }
 
-/* ====================== TABLA ESCENARIOS ====================== */
-(function(){
-  const tb = document.getElementById("tblEsc");
-  ORDEN.forEach(e=>{
-    const d=ESCENARIOS[e];
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${d.nombre}</td><td>${fmtM(d.ventas)}</td><td>${fmtM(d.utilidad)}</td><td>${fmtPct(d.margen)}</td><td>${fmtPct(d.tirProy)}</td><td><b>${fmtPct(d.tirAcc)}</b></td>`;
-    tb.appendChild(tr);
-  });
-})();
+(function(){ const tb=tblEsc; ORDEN.forEach(e=>{const d=ESCENARIOS[e];const tr=document.createElement("tr");
+  tr.innerHTML=`<td>${d.nombre}</td><td>${fmtM(d.ventas)}</td><td>${fmtM(d.utilidad)}</td><td>${fmtPct(d.margen)}</td><td>${fmtPct(d.tirProy)}</td><td><b style="color:var(--gold)">${fmtPct(d.tirAcc)}</b></td>`;
+  tb.appendChild(tr);}); })();
 
-/* ====================== TABLA COSTOS ====================== */
-(function(){
-  const total = COSTOS.reduce((s,c)=>s+c[1],0);
-  document.getElementById("costTotal").textContent = fmtQ(total);
-  const max = COSTOS[0][1];
-  const tb = document.getElementById("tblCostos");
-  COSTOS.forEach(c=>{
-    const pct = c[1]/total*100;
-    const w = c[1]/max*100;
-    const tr=document.createElement("tr");
+(function(){ const total=COSTOS.reduce((s,c)=>s+c[1],0); costTotal.textContent=fmtQ(total);
+  const max=COSTOS[0][1]; const tb=tblCostos;
+  COSTOS.forEach(c=>{const pct=c[1]/total*100,w=c[1]/max*100;const tr=document.createElement("tr");
     tr.innerHTML=`<td class="bar-cell"><div class="barfill" style="width:${w}%"></div><span>${c[0]}</span></td><td>${fmtQ(c[1])}</td><td>${pct.toFixed(1)}%</td>`;
-    tb.appendChild(tr);
-  });
-})();
+    tb.appendChild(tr);}); })();
 
-/* ====================== FLUJO MENSUAL (S-curve) ====================== */
-const MESES_OBRA = [];
-(function(){
-  // Feb 2027 -> Feb 2030 (37 meses)
-  const nom=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-  let y=2027,m=1; // m=1 => Feb (0-index)
-  for(let i=0;i<37;i++){ MESES_OBRA.push(nom[m]+" "+String(y).slice(2)); m++; if(m>11){m=0;y++;} }
-})();
-// distribución S-curve (logística) sobre construcción total
-const flujoProy = (function(){
-  const n=MESES_OBRA.length, arr=[], k=0.28, mid=n/2;
-  let raw=[], sum=0;
-  for(let i=0;i<n;i++){ const v=1/(1+Math.exp(-k*(i-mid))); raw.push(v); }
-  // densidad = derivada aproximada
-  let dens=[]; for(let i=0;i<n;i++){ const d=i===0?raw[0]:raw[i]-raw[i-1]; dens.push(Math.max(d,0)); sum+=Math.max(d,0); }
-  for(let i=0;i<n;i++){ arr.push(dens[i]/sum*CONSTRUCCION_TOTAL); }
-  return arr;
-})();
-const flujoReal = new Array(MESES_OBRA.length).fill(null);
+const MESES_OBRA=[]; (function(){const nom=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  let y=2027,m=1; for(let i=0;i<37;i++){MESES_OBRA.push(nom[m]+" "+String(y).slice(2));m++;if(m>11){m=0;y++;}}})();
+const flujoProy=(function(){const n=MESES_OBRA.length,k=0.28,mid=n/2;let raw=[],dens=[],sum=0,arr=[];
+  for(let i=0;i<n;i++)raw.push(1/(1+Math.exp(-k*(i-mid))));
+  for(let i=0;i<n;i++){const d=i===0?raw[0]:raw[i]-raw[i-1];dens.push(Math.max(d,0));sum+=Math.max(d,0);}
+  for(let i=0;i<n;i++)arr.push(dens[i]/sum*CONSTRUCCION_TOTAL); return arr;})();
+const flujoReal=new Array(MESES_OBRA.length).fill(null);
 
 function renderFlujoTabla(){
-  const tb=document.getElementById("tblFlujo"); tb.innerHTML="";
-  let acum=0, totalP=flujoProy.reduce((s,v)=>s+v,0), totalR=0, totalV=0;
-  MESES_OBRA.forEach((mes,i)=>{
-    acum+=flujoProy[i];
-    const real=flujoReal[i];
-    const varv = real==null? null : real-flujoProy[i];
-    if(real!=null){ totalR+=real; totalV+=varv; }
-    const varTxt = varv==null? "—" : `<span class="${varv<=0?'pos':'neg'}">${(varv>=0?'+':'')}${fmtQ(varv)}</span>`;
-    const varPct = varv==null? "—" : `<span class="${varv<=0?'pos':'neg'}">${(varv>=0?'+':'')}${(varv/flujoProy[i]*100).toFixed(1)}%</span>`;
+  const tb=tblFlujo; tb.innerHTML=""; let acum=0; const totalP=flujoProy.reduce((s,v)=>s+v,0);
+  let totalR=0,totalV=0,baseConReal=0;
+  MESES_OBRA.forEach((mes,i)=>{ acum+=flujoProy[i]; const real=flujoReal[i];
+    const varv=real==null?null:real-flujoProy[i];
+    if(real!=null){totalR+=real;totalV+=varv;baseConReal+=flujoProy[i];}
+    const vT=varv==null?"—":`<span class="${varv<=0?'pos':'neg'}">${varv>=0?'+':''}${fmtQ(varv)}</span>`;
+    const vP=varv==null?"—":`<span class="${varv<=0?'pos':'neg'}">${varv>=0?'+':''}${(varv/flujoProy[i]*100).toFixed(1)}%</span>`;
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${mes}</td><td>${fmtQ(flujoProy[i])}</td>`+
-      `<td contenteditable data-i="${i}">${real==null?"":Math.round(real).toLocaleString("es-GT")}</td>`+
-      `<td>${varTxt}</td><td>${varPct}</td><td>${(acum/totalP*100).toFixed(0)}%</td>`;
-    tb.appendChild(tr);
-  });
-  document.getElementById("flProy").textContent=fmtQ(totalP);
-  document.getElementById("flReal").textContent=totalR>0?fmtQ(totalR):"—";
-  document.getElementById("flVar").textContent =totalR>0?fmtQ(totalV):"—";
-  document.getElementById("flVarPct").textContent=totalR>0?((totalV/flujoProy.slice(0,flujoReal.filter(x=>x!=null).length).reduce((s,v)=>s+v,0))*100).toFixed(1)+"%":"—";
-  // editable handlers
+    tr.innerHTML=`<td>${mes}</td><td>${fmtQ(flujoProy[i])}</td><td contenteditable data-i="${i}">${real==null?"":Math.round(real).toLocaleString("es-GT")}</td><td>${vT}</td><td>${vP}</td><td>${(acum/totalP*100).toFixed(0)}%</td>`;
+    tb.appendChild(tr); });
+  flProy.textContent=fmtQ(totalP); flReal.textContent=totalR>0?fmtQ(totalR):"—";
+  flVar.textContent=totalR>0?(totalV>=0?'+':'')+fmtQ(totalV):"—";
+  flVarPct.textContent=baseConReal>0?((totalV/baseConReal*100).toFixed(1))+"%":"—";
   tb.querySelectorAll("td[contenteditable]").forEach(td=>{
-    td.addEventListener("blur",ev=>{
-      const i=+ev.target.dataset.i;
-      const raw=ev.target.textContent.replace(/[^\d.-]/g,"");
-      flujoReal[i]= raw===""? null : parseFloat(raw);
-      renderFlujoTabla(); updateFlujoChart();
-    });
-    td.addEventListener("keydown",ev=>{ if(ev.key==="Enter"){ev.preventDefault();ev.target.blur();}});
+    td.addEventListener("blur",ev=>{const i=+ev.target.dataset.i;const raw=ev.target.textContent.replace(/[^\d.-]/g,"");
+      flujoReal[i]=raw===""?null:parseFloat(raw); renderFlujoTabla(); updateFlujoChart();});
+    td.addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();ev.target.blur();}});
   });
 }
 
-/* ====================== CHARTS ====================== */
-Chart.defaults.color="#8b97a7";
-Chart.defaults.borderColor="#2a3441";
-Chart.defaults.font.family="Segoe UI, system-ui, sans-serif";
+Chart.defaults.color="#67748a"; Chart.defaults.borderColor="#e2e8f0"; Chart.defaults.font.family="Segoe UI, system-ui, sans-serif";
+function highlightTir(e){const idx=ORDEN.indexOf(e);
+  window._chTir.data.datasets[0].backgroundColor=ORDEN.map((_,i)=>i===idx?"#c9a227":"#16406e"); window._chTir.update();}
 
-function highlightTir(e){
-  const idx=ORDEN.indexOf(e);
-  window._chTir.data.datasets[0].backgroundColor = ORDEN.map((_,i)=> i===idx? "#3fb6ff":"#2f5070");
-  window._chTir.update();
-}
 window.addEventListener("DOMContentLoaded",()=>{
-  // TIR bar
-  window._chTir = new Chart(document.getElementById("chTir"),{
-    type:"bar",
-    data:{labels:ORDEN.map(e=>ESCENARIOS[e].nombre),
-      datasets:[{label:"TIR Accionistas (%)",data:ORDEN.map(e=>ESCENARIOS[e].tirAcc),backgroundColor:"#2f5070",borderRadius:6}]},
-    options:{plugins:{legend:{display:false},title:{display:true,text:"TIR Accionistas por Escenario (%)"}},
-      scales:{y:{beginAtZero:true,ticks:{callback:v=>v+"%"}}}}
-  });
-  // Costos doughnut (top 6 + otros)
-  const top=COSTOS.slice(0,6); const otros=COSTOS.slice(6).reduce((s,c)=>s+c[1],0);
-  window._chCostos = new Chart(document.getElementById("chCostos"),{
-    type:"doughnut",
-    data:{labels:[...top.map(c=>c[0]),"Otros"],
-      datasets:[{data:[...top.map(c=>c[1]),otros],
-        backgroundColor:["#3fb6ff","#7ee787","#f0a35e","#ff6b6b","#b392f0","#79c0ff","#56636f"]}]},
-    options:{plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}},title:{display:true,text:"Composición de la Inversión F2"}}}
-  });
-  // Flujo line/bar
-  window._chFlujo = new Chart(document.getElementById("chFlujo"),{
-    data:{labels:MESES_OBRA,
-      datasets:[
-        {type:"line",label:"Proyectado",data:flujoProy,borderColor:"#3fb6ff",backgroundColor:"rgba(63,182,255,.12)",fill:true,tension:.35,pointRadius:0},
-        {type:"bar",label:"Real",data:flujoReal,backgroundColor:"#7ee787",borderRadius:3}
-      ]},
-    options:{plugins:{title:{display:true,text:"Flujo de Costos de Construcción · Proyectado vs Real"}},
-      scales:{y:{beginAtZero:true,ticks:{callback:v=>"Q"+(v/1e6).toFixed(0)+"M"}}}}
-  });
-  renderFlujoTabla();
-  setEscenario("E1");
+  window._chTir=new Chart(chTir,{type:"bar",
+    data:{labels:ORDEN.map(e=>ESCENARIOS[e].nombre),datasets:[{label:"TIR Accionistas (%)",data:ORDEN.map(e=>ESCENARIOS[e].tirAcc),backgroundColor:"#16406e",borderRadius:6}]},
+    options:{plugins:{legend:{display:false},title:{display:true,text:"TIR Accionistas por Escenario (%)",color:"#0f2c4d",font:{size:14,weight:"600"}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+"%"}}}}});
+  const top=COSTOS.slice(0,6),otros=COSTOS.slice(6).reduce((s,c)=>s+c[1],0);
+  window._chCostos=new Chart(chCostos,{type:"doughnut",
+    data:{labels:[...top.map(c=>c[0]),"Otros"],datasets:[{data:[...top.map(c=>c[1]),otros],backgroundColor:["#16406e","#1f73c4","#0f9d8c","#c9a227","#7aa9d6","#b9852a","#9aa7b8"]}]},
+    options:{plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}},title:{display:true,text:"Composición de la Inversión F2",color:"#0f2c4d",font:{size:14,weight:"600"}}}}});
+  window._chFlujo=new Chart(chFlujo,{
+    data:{labels:MESES_OBRA,datasets:[
+      {type:"line",label:"Proyectado",data:flujoProy,borderColor:"#1f73c4",backgroundColor:"rgba(31,115,196,.12)",fill:true,tension:.35,pointRadius:0,borderWidth:2},
+      {type:"bar",label:"Real",data:flujoReal,backgroundColor:"#0f9d8c",borderRadius:3}]},
+    options:{plugins:{title:{display:true,text:"Flujo de Costos de Construcción · Proyectado vs Real",color:"#0f2c4d",font:{size:14,weight:"600"}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>"Q"+(v/1e6).toFixed(0)+"M"}}}}});
+  renderFlujoTabla(); setEscenario("E1");
 });
-function updateFlujoChart(){ window._chFlujo.data.datasets[1].data=flujoReal; window._chFlujo.update(); }
-
+function updateFlujoChart(){window._chFlujo.data.datasets[1].data=flujoReal;window._chFlujo.update();}
 document.querySelectorAll(".sbtn").forEach(b=>b.addEventListener("click",()=>setEscenario(b.dataset.e)));
 </script>
 </body>

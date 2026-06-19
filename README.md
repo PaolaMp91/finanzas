@@ -1,7 +1,14 @@
 # Dashboard Financiero · Boulevard Sur Club Residencial
 
-Dashboard interactivo (un solo archivo HTML) con el resumen financiero del proyecto
-**Boulevard Sur Club Residencial** (Periferia Urbana · Mixco, Guatemala).
+Dashboard interactivo **consolidado** (un solo archivo HTML, diseño corporativo) con el resumen
+financiero del proyecto **Boulevard Sur Club Residencial** (Periferia Urbana · Mixco, Guatemala),
+integrando **Fase 1 + Fase 2**.
+
+## Cifras consolidadas del proyecto
+
+- **704 apartamentos** (Fase 1: 216 · Fase 2: 488)
+- **875 parqueos** netos (Fase 1: 321 · Fase 2: 594, descontando 40 de doble conteo)
+- Fase 1 (Torres A·B·C, 72 aptos c/u) en obra; Fase 2 (Torres D·E·F) en evaluación con 4 escenarios.
 
 ## Cómo usarlo
 
@@ -34,6 +41,7 @@ Microsoft Teams › Periferia Urbana › Canal **Boulevard Sur** › carpeta **F
 - `PU PROJECT 94M Escenario BI 31-05-2026 12 nvls.xlsx` (archivo maestro)
 - `2026-06-17 - Escenarios Financieros F2.pptx` (escenarios E1–E4, unidades, parqueos, cronograma)
 - `2026-21-05 Presentación Financiera` (comparativo bancario BI vs G&T · Fase 1)
+- `HANDOVER – BOULEVARD SUR CLUB RESIDENCIAL.pdf` (unidades de Fase 1: 216 aptos)
 - Minuta de reunión financiera 11-06-2026
 
 > Nota: el archivo maestro Excel (16 MB) no pudo convertirse a texto automáticamente; las cifras
