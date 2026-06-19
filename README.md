@@ -1,49 +1,55 @@
 # Dashboard Financiero · Boulevard Sur Club Residencial
 
-Dashboard interactivo **consolidado** (un solo archivo HTML, diseño corporativo) con el resumen
-financiero del proyecto **Boulevard Sur Club Residencial** (Periferia Urbana · Mixco, Guatemala),
-integrando **Fase 1 + Fase 2**.
-
-## Cifras consolidadas del proyecto
-
-- **704 apartamentos** (Fase 1: 216 · Fase 2: 488)
-- **875 parqueos** netos (Fase 1: 321 · Fase 2: 594, descontando 40 de doble conteo)
-- Fase 1 (Torres A·B·C, 72 aptos c/u) en obra; Fase 2 (Torres D·E·F) en evaluación con 4 escenarios.
+Dashboard interactivo (un solo archivo HTML) construido sobre los **datos reales del archivo maestro**
+`PU PROJECT 94M Escenario BI 31-05-2026 12 nvls.xlsx` (Periferia Urbana · Mixco, Guatemala).
 
 ## Cómo usarlo
+Abra **`index.html`** en cualquier navegador (doble clic). Internet solo se requiere la primera vez para Chart.js (CDN).
 
-Abra **`index.html`** en cualquier navegador (doble clic). No requiere instalación.
-Necesita conexión a internet la primera vez para cargar la librería de gráficas (Chart.js por CDN).
+## Datos reales del proyecto (Excel · Banco Industrial 8%)
+- Ventas totales: **Q449.7 M** (F1: Q144.1M · F2: Q305.7M)
+- Inversión total: **Q398.6 M** · Utilidad neta: **Q51.1 M** · Margen: **11.37%**
+- TIR proyecto: **12.53%** · TIR accionistas: **29.18%** (G&T: 13.12% / 30.91%)
+- 648 apartamentos (F1: 216 · F2: 432) · 898 parqueos (F1: 321 · F2: 577)
 
-## Qué muestra
+La Fase 1 opera con margen negativo (−4.79%, alta carga de infraestructura); la Fase 2 concentra la rentabilidad
+(margen 18.98%, TIR accionistas 63.6%).
 
-| Sección | Contenido |
-|---|---|
-| **KPIs principales** | TIR de accionistas, TIR de proyecto, margen, utilidad proyectada, total ventas, inversión total, requerimiento de capital y años de ejecución. |
-| **Selector de escenario** | Cambia entre los 4 escenarios de Fase 2 (E1–E4); todos los KPIs y la gráfica de TIR se actualizan. |
-| **Unidades y parqueos** | 488 apartamentos (2D: 334 · 3D: 154), composición de torres (D/E/F + TP2) y parqueos por fase (F1: 321 · F2: 594 · total neto 875). |
-| **Comparativo de escenarios** | Tabla y gráfica de ventas, utilidad, margen y TIR de los 4 escenarios. |
-| **Resumen de costos** | Presupuesto de inversión Fase 2 (Q 255.4 M) por partida con porcentajes + tasa de banco (8%). |
-| **Cronograma y capital** | Inicio de obra (Feb 2027), entrega (Feb 2030), crédito bancario, requerimiento de capital y comparativo bancario de Fase 1 (BI vs G&T, TIR socios 31.20%). |
-| **Resumen de desembolsos** | Crédito autorizado, mecánica de desembolso, capital aportado y gastos financieros. |
-| **Flujo de costos por mes** | Curva mensual proyectada vs. real con tabla **editable** (columna *Real* recalcula variación, % y gráfica). |
+## Comparativa estratégica (Fase 2)
+Modelo pro-forma mensual **calibrado contra el Excel** (la base reproduce TIR proyecto 21.7% vs 21.9% y TIR
+accionistas 65.7% vs 63.6% del archivo). Aplica los cambios solicitados:
 
-## Datos editables
+- Presupuesto de construcción → **Q180 M**
+- Promoción → **1% del presupuesto total**
+- **Sin ingreso de bodegas** en Fase 2
+- **Entregas empatadas con la finalización de la obra**
 
-Todos los datos están en el bloque `DATOS DEL PROYECTO` al inicio del `<script>` en `index.html`
-(`ESCENARIOS`, `COSTOS`, etc.). Actualícelos con el archivo maestro cuando cambien las cifras.
-La columna **Real** del flujo mensual se edita directamente con clic en la celda.
+| Métrica | A · Vender 25/mes (rápido) | B · Vender 14/mes (+3% anual) |
+|---|---|---|
+| TIR Accionistas | **52.4%** | 41.7% |
+| TIR Proyecto | **15.7%** | 14.2% |
+| Utilidad neta | Q29.3 M | **Q30.5 M** |
+| Margen | 9.6% | 9.7% |
+| Ventas | Q305.7 M | Q313.4 M |
+| Costo financiero | **Q23.1 M** | Q28.8 M |
+| Duración de obra | 18 meses | 26 meses |
+| 1ª entrega | Oct 2028 | Jun 2029 |
 
-## Fuentes
+**Recomendación: Escenario A.** Mayor TIR de accionistas (+10.7 pp), entrega ≈8 meses antes y menor costo
+financiero (−Q5.7 M). El alza de precio del 3% anual de B solo aporta Q1.2 M más de utilidad absoluta,
+insuficiente para compensar el mayor tiempo, interés y exposición al riesgo.
 
-Microsoft Teams › Periferia Urbana › Canal **Boulevard Sur** › carpeta **Flujo Financiero**:
+## Metodología del modelo
+`model.py` (incluido) construye un flujo de caja mensual de Fase 2: ventas por absorción, enganche 10% en cuotas,
+hipoteca 90% a escrituración (3 meses tras entrega), construcción en S-curve, comisiones, promoción, financiamiento
+bancario al 8% e ISR. La TIR se calcula mensual y se anualiza. La base se calibra contra el Estado de Resultados
+del Excel antes de proyectar los escenarios.
 
-- `PU PROJECT 94M Escenario BI 31-05-2026 12 nvls.xlsx` (archivo maestro)
-- `2026-06-17 - Escenarios Financieros F2.pptx` (escenarios E1–E4, unidades, parqueos, cronograma)
-- `2026-21-05 Presentación Financiera` (comparativo bancario BI vs G&T · Fase 1)
-- `HANDOVER – BOULEVARD SUR CLUB RESIDENCIAL.pdf` (unidades de Fase 1: 216 aptos)
-- Minuta de reunión financiera 11-06-2026
+## Secciones del dashboard
+Resumen consolidado real · Comparativa estratégica A vs B con recomendación · Gráficas de TIR y utilidad ·
+Unidades por fase · Presupuesto de inversión F2 (con los cambios) · Cronograma y comparativo bancario BI/G&T ·
+Flujo de costos de construcción mensual proyectado vs. real (editable, por escenario).
 
-> Nota: el archivo maestro Excel (16 MB) no pudo convertirse a texto automáticamente; las cifras
-> provienen de las presentaciones financieras derivadas de ese análisis. El calendario detallado de
-> desembolsos y el flujo mensual real deben cargarse desde el archivo maestro.
+## Fuente
+Microsoft Teams › Periferia Urbana › Canal **Boulevard Sur** › carpeta **Flujo Financiero** →
+`PU PROJECT 94M Escenario BI 31-05-2026 12 nvls.xlsx` (hojas RESUMEN GENERAL, ER F2, SUPUESTOS F2, INDICES, INCREMENTO F2).
