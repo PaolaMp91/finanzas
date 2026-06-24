@@ -37,18 +37,24 @@ def extract(path):
         row = R.get(i)
         if not row: continue
         rubro = str(row[2]).strip() if row[2] else None
-        proy = num(row[3]); ejec = num(row[5])
+        proy = num(row[3]); ejec = num(row[5]); usd = num(row[4]); falta = num(row[7])
         if rubro and proy is not None and abs(proy) > 0:
             p = abs(proy); e = abs(ejec) if ejec else 0.0
             control.append({"rubro": rubro, "proyectado": p, "ejecutado": e,
+                            "usd": abs(usd) if usd else 0.0,
+                            "por_ejecutar": abs(falta) if falta is not None else (p - e),
                             "pct": (e / p if p else 0)})
     ventas = num(R[33][3]) or 0
     utilidad = num(R[34][3]) or 0
+    tc = (abs(num(R[32][3]) or 0) / abs(num(R[32][4]) or 1)) if num(R[32][4]) else 7.8
     totals = {
         "costo_total": abs(num(R[32][3]) or 0),
+        "costo_total_usd": abs(num(R[32][4]) or 0),
         "ejecutado_total": abs(num(R[32][5]) or 0),
         "ventas": ventas,
+        "ventas_usd": abs(num(R[33][4]) or 0),
         "utilidad": utilidad,
+        "tc": round(tc, 2),
         "margen": (utilidad / ventas if ventas else 0),
     }
     corte = "Enero 2026"
@@ -158,7 +164,7 @@ TEMPLATE = r"""<!DOCTYPE html>
       <div class="grid g2">
         <div class="card" style="overflow:auto;max-height:560px">
           <table>
-            <thead><tr><th>Rubro</th><th>Proyectado (Q)</th><th>Ejecutado (Q)</th><th>Avance</th></tr></thead>
+            <thead><tr><th>Rubro</th><th>Proyectado Q</th><th>Proyectado US$</th><th>Ejecutado Q</th><th>Por ejecutar Q</th><th>Avance</th></tr></thead>
             <tbody id="ctrlBody"></tbody>
             <tfoot id="ctrlFoot"></tfoot>
           </table>
@@ -192,7 +198,7 @@ const fmtQ=v=>"Q "+Math.round(v).toLocaleString("es-GT");
 const fmtM=v=>"Q "+(v/1e6).toFixed(1)+" M";
 const pct=v=>(v*100).toFixed(1)+"%";
 
-document.getElementById("sub").textContent="Cuadro de control al "+M.corte+" · Matriz: "+M.fuente;
+document.getElementById("sub").textContent="Cuadro de control al "+M.corte+" · TC US$ "+M.totals.tc+" · Matriz: "+M.fuente;
 document.getElementById("liveTxt").textContent="Actualizado "+M.actualizado;
 
 // KPIs
@@ -208,15 +214,16 @@ document.getElementById("kpis").innerHTML=kpis.map(k=>
   `<div class="card kpi ${k[0]}"><div class="kl">${k[1]}</div><div class="kv">${k[2]}</div><div class="ks">${k[3]}</div></div>`).join("");
 
 // Control table
+const fmtU=v=>"$ "+Math.round(v).toLocaleString("es-GT");
 const ctrl=[...M.control].sort((a,b)=>b.proyectado-a.proyectado);
 document.getElementById("ctrlBody").innerHTML=ctrl.map(r=>{
   const p=Math.min(r.pct,1)*100;
-  return `<tr><td>${r.rubro}</td><td>${fmtQ(r.proyectado)}</td><td>${fmtQ(r.ejecutado)}</td>
+  return `<tr><td>${r.rubro}</td><td>${fmtQ(r.proyectado)}</td><td style="color:var(--muted)">${fmtU(r.usd)}</td><td>${fmtQ(r.ejecutado)}</td><td>${fmtQ(r.por_ejecutar)}</td>
     <td><div class="prog"><div style="width:${p.toFixed(0)}%"></div><span>${(r.pct*100).toFixed(0)}%</span></div></td></tr>`;
 }).join("");
-const tEjec=M.totals.ejecutado_total, tProy=M.totals.costo_total;
+const tEjec=M.totals.ejecutado_total, tProy=M.totals.costo_total, tFalta=tProy-tEjec;
 document.getElementById("ctrlFoot").innerHTML=
-  `<tr><td>COSTO TOTAL</td><td>${fmtQ(tProy)}</td><td>${fmtQ(tEjec)}</td><td>${(tEjec/tProy*100).toFixed(1)}%</td></tr>`;
+  `<tr><td>COSTO TOTAL</td><td>${fmtQ(tProy)}</td><td>${fmtU(M.totals.costo_total_usd)}</td><td>${fmtQ(tEjec)}</td><td>${fmtQ(tFalta)}</td><td>${(tEjec/tProy*100).toFixed(1)}%</td></tr>`;
 document.getElementById("execSummary").innerHTML=
   `<div style="font-size:12.5px;color:var(--muted)">Avance global de ejecución del costo del proyecto:
    <b style="color:var(--navy);font-size:15px">${(tEjec/tProy*100).toFixed(1)}%</b> · Ejecutado ${fmtM(tEjec)} de ${fmtM(tProy)}.
