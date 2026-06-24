@@ -45,6 +45,19 @@ hipoteca 90% a escrituración (3 meses tras entrega), construcción en S-curve, 
 bancario al 8% e ISR. La TIR se calcula mensual y se anualiza. La base se calibra contra el Estado de Resultados
 del Excel antes de proyectar los escenarios.
 
+## Vista conectada a la matriz (`matriz.html`)
+Dashboard generado **directamente desde la matriz** (Excel maestro) con el script `build_from_matrix.py`:
+
+```bash
+python3 build_from_matrix.py "ruta/al/PU PROJECT 94M Escenario BI ... .xlsx"
+```
+
+Lee las hojas `Dashboard (2)` (Cuadro de Control **Ejecutado vs Proyectado**) y `RESUMEN GENERAL`
+(rentabilidad por fase y banco) y produce `matriz.html` con los valores reales: ventas Q449.7M,
+utilidad Q51.1M, margen 11.37%, TIR accionistas 29.18% (BI) / 30.91% (G&T), y el avance de ejecución
+del costo por rubro. **Para refrescar con nuevos valores**, descargue la última versión de la matriz
+desde Teams y vuelva a ejecutar el script.
+
 ## Secciones del dashboard
 Resumen consolidado real · Comparativa estratégica A vs B con recomendación · Gráficas de TIR y utilidad ·
 Unidades por fase · Presupuesto de inversión F2 (con los cambios) · Cronograma y comparativo bancario BI/G&T ·
