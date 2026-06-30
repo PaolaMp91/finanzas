@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Investment Brief · Boulevard Sur Club Residencial</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#0f2c4d; --navy2:#16406e; --blue:#1f73c4; --sky:#e8f0fa;
+    --gold:#c9a227; --teal:#0f9d8c;
+    --bg:#eef1f6; --card:#ffffff; --line:#e2e8f0;
+    --txt:#1c2733; --muted:#67748a; --soft:#8a96a8;
+    --good:#1f9d57; --bad:#d64545; --warn:#d98a1f;
+    --shadow:0 1px 3px rgba(16,35,60,.07),0 6px 18px rgba(16,35,60,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;font-size:13.5px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px 50px}
+  .nav{background:var(--navy);padding:9px 0}
+  .nav .wrap{display:flex;gap:8px;align-items:center;padding-bottom:0}
+  .nav a{color:#b9cce4;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px}
+  .nav a.on{background:rgba(255,255,255,.13);color:#fff}
+  .nav a:hover{color:#fff}
+  /* header */
+  .hd{background:linear-gradient(125deg,var(--navy),var(--navy2) 60%,#1d4f86);color:#fff;padding:28px 0 24px;box-shadow:var(--shadow)}
+  .hd .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:18px;padding-bottom:0}
+  .hd .kick{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase}
+  .hd h1{font-size:27px;font-weight:700;margin-top:4px}
+  .hd .sub{color:#b9cce4;font-size:13px;margin-top:5px}
+  .verdict{background:var(--good);color:#fff;border-radius:12px;padding:12px 18px;text-align:center;box-shadow:0 3px 12px rgba(31,157,87,.4)}
+  .verdict .vk{font-size:10.5px;letter-spacing:1.5px;font-weight:700;opacity:.85}
+  .verdict .vv{font-size:19px;font-weight:800;margin-top:2px}
+  section{margin-top:26px}
+  h2.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--navy);font-weight:800;margin-bottom:13px;display:flex;align-items:center;gap:9px}
+  h2.sec::before{content:"";width:4px;height:15px;background:var(--gold);border-radius:3px}
+  .grid{display:grid;gap:14px}
+  .g6{grid-template-columns:repeat(6,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  .g23{grid-template-columns:1.3fr 1fr}
+  @media(max-width:980px){.g6{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2,.g23{grid-template-columns:1fr}}
+  @media(max-width:560px){.g6,.g4,.g3{grid-template-columns:repeat(2,1fr)}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .metric .ml{color:var(--muted);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .metric .mv{font-size:23px;font-weight:800;color:var(--navy);margin-top:5px;line-height:1.1}
+  .metric .ms{color:var(--soft);font-size:11px;margin-top:4px}
+  .metric.gold .mv{color:var(--gold)} .metric.teal .mv{color:var(--teal)} .metric.good .mv{color:var(--good)}
+  .thesis{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)}
+  .thesis li{list-style:none;padding:7px 0 7px 26px;position:relative;font-size:13.5px;border-bottom:1px dashed var(--line)}
+  .thesis li:last-child{border:none}
+  .thesis li::before{content:"▸";position:absolute;left:4px;color:var(--gold);font-weight:800}
+  .thesis b{color:var(--navy)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;background:#f7f9fc}
+  tfoot td{font-weight:800;border-top:2px solid var(--navy);border-bottom:none;color:var(--navy)}
+  .pos{color:var(--good);font-weight:700}.neg{color:var(--bad);font-weight:700}
+  .chart-box{position:relative;height:240px}
+  .su-bar{height:26px;border-radius:5px;display:flex;overflow:hidden;margin:10px 0 6px}
+  .su-bar div{height:100%}
+  .su-leg{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--muted)}
+  .su-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .risk{display:flex;gap:11px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+  .risk:last-child{border:none}
+  .risk .lvl{flex:0 0 56px;text-align:center;font-size:10px;font-weight:800;border-radius:6px;padding:3px 0;height:fit-content;text-transform:uppercase;letter-spacing:.5px}
+  .lvl.alto{background:#fbe9e9;color:var(--bad)} .lvl.medio{background:#fdf1e0;color:var(--warn)} .lvl.bajo{background:#e7f3ec;color:var(--good)}
+  .risk b{color:var(--navy)}
+  .vs2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  @media(max-width:560px){.vs2{grid-template-columns:1fr}}
+  .opt{border:2px solid var(--line);border-radius:12px;padding:15px;background:var(--card)}
+  .opt.win{border-color:var(--good);box-shadow:0 0 0 3px rgba(31,157,87,.1)}
+  .opt h3{font-size:14px;color:var(--navy)} .opt .od{color:var(--muted);font-size:11.5px;margin:2px 0 10px}
+  .opt .om{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--line)}
+  .opt .om:last-child{border:none}.opt .om b{color:var(--navy)}
+  .wtag{display:inline-block;background:var(--good);color:#fff;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
+  .reco{background:linear-gradient(120deg,#0d3b2e,#12624a);color:#fff;border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)}
+  .reco h3{font-size:15px;margin-bottom:6px}.reco p{color:#cdeede;font-size:13px}.reco b{color:#fff}
+  footer{color:var(--muted);font-size:11px;border-top:1px solid var(--line);padding-top:16px;margin-top:26px}
+  footer code{background:#eef2f7;padding:1px 6px;border-radius:4px;color:var(--navy)}
+  @media print{.nav{display:none}body{background:#fff}.card,.thesis{box-shadow:none}}
+</style>
+</head>
+<body>
+
+  <div class="nav"><div class="wrap">
+    <a href="index.html">Dashboard operativo</a>
+    <a href="brief.html" class="on">Investment Brief</a>
+    <a href="matriz.html">Matriz · Ejecutado vs Proyectado</a>
+  </div></div>
+
+  <div class="hd"><div class="wrap">
+    <div>
+      <div class="kick">Memorándum de Inversión · Real Estate</div>
+      <h1>Boulevard Sur Club Residencial</h1>
+      <div class="sub">Desarrollo residencial de 648 apartamentos en 2 fases · San Cristóbal, Mixco, Guatemala · Periferia Urbana</div>
+    </div>
+    <div class="verdict">
+      <div class="vk">VEREDICTO</div>
+      <div class="vv">INVERTIR ★</div>
+    </div>
+  </div></div>
+
+  <div class="wrap">
+
+    <!-- TESIS -->
+    <section>
+      <h2 class="sec">Tesis de Inversión</h2>
+      <div class="grid g23">
+        <ul class="thesis">
+          <li><b>Retorno superior al costo de capital.</b> TIR de accionistas <b>29.2%</b> frente a un Ke de 12.0% — un diferencial de +17 pp que crea valor (VPN positivo de Q45.0 M).</li>
+          <li><b>La rentabilidad se concentra en la Fase 2.</b> F2 genera utilidad de Q58.0 M con margen del 19.0% y TIR de accionistas del 63.6%; financiada en 91% por enganches, con mínima exposición de capital propio.</li>
+          <li><b>Demanda probada y absorción sólida.</b> 17 aptos/mes con precio promedio de Q707 mil; estructura de venta 10% enganche / 90% hipoteca FHA reduce el riesgo de cartera.</li>
+          <li><b>Apalancamiento eficiente.</b> Crédito bancario de Q105 M al 8% (BI) cubre la construcción; el capital de socios aportado es de solo Q11.2 M en Fase 1.</li>
+        </ul>
+        <div class="card">
+          <h2 class="sec" style="margin-bottom:10px">El Pedido</h2>
+          <table>
+            <tr><td>Inversión total del proyecto</td><td><b>Q 398.6 M</b></td></tr>
+            <tr><td>Deuda bancaria (BI 8%)</td><td>Q 105.0 M</td></tr>
+            <tr><td>Capital de socios (F1)</td><td>Q 11.2 M</td></tr>
+            <tr><td>Enganches (autofinanciamiento)</td><td>Q 159.6 M</td></tr>
+            <tr><td>Horizonte del proyecto</td><td>75 meses</td></tr>
+            <tr><td>Aporte adicional requerido</td><td><span class="pos">Ya aportado</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- METRICAS CLAVE -->
+    <section>
+      <h2 class="sec">Métricas Clave de Retorno · Proyecto consolidado (Banco Industrial 8%)</h2>
+      <div class="grid g6">
+        <div class="card metric gold"><div class="ml">TIR Accionistas</div><div class="mv">29.2%</div><div class="ms">Ke 12.0% · spread +17 pp</div></div>
+        <div class="card metric teal"><div class="ml">TIR Proyecto</div><div class="mv">12.5%</div><div class="ms">WACC 8.8% · spread +3.7 pp</div></div>
+        <div class="card metric"><div class="ml">VPN @ Ke</div><div class="mv">Q 45.0 M</div><div class="ms">Valor presente neto</div></div>
+        <div class="card metric"><div class="ml">Utilidad Neta</div><div class="mv">Q 51.1 M</div><div class="ms">Margen 11.4%</div></div>
+        <div class="card metric"><div class="ml">Inversión</div><div class="mv">Q 398.6 M</div><div class="ms">Ventas Q 449.7 M</div></div>
+        <div class="card metric"><div class="ml">Payback</div><div class="mv">64 m</div><div class="ms">Socios: 72 m</div></div>
+      </div>
+    </section>
+
+    <!-- ACTIVO + RETORNO POR FASE -->
+    <section>
+      <div class="grid g2">
+        <div class="card">
+          <h2 class="sec" style="margin-bottom:11px">El Activo</h2>
+          <table>
+            <tr><td>Apartamentos totales</td><td><b>648</b> (F1 216 · F2 432)</td></tr>
+            <tr><td>Parqueos</td><td>898 (F1 321 · F2 577)</td></tr>
+            <tr><td>Torres</td><td>6 (A·B·C · D·E·F)</td></tr>
+            <tr><td>Área vendible F2</td><td>25,896 m²</td></tr>
+            <tr><td>Precio promedio / apto</td><td>Q 707,526</td></tr>
+            <tr><td>Precio por m²</td><td>Q 7,419</td></tr>
+            <tr><td>Ubicación</td><td>San Cristóbal, Mixco</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h2 class="sec" style="margin-bottom:11px">Retorno por Fase</h2>
+          <table>
+            <thead><tr><th>Métrica</th><th>Fase 1</th><th>Fase 2</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr><td>Ventas</td><td>Q144.1M</td><td>Q305.7M</td><td>Q449.7M</td></tr>
+              <tr><td>Utilidad neta</td><td class="neg">−Q6.9M</td><td class="pos">Q58.0M</td><td>Q51.1M</td></tr>
+              <tr><td>Margen neto</td><td class="neg">−4.8%</td><td class="pos">19.0%</td><td>11.4%</td></tr>
+              <tr><td>TIR proyecto</td><td>~0%</td><td>21.9%</td><td>12.5%</td></tr>
+              <tr><td>TIR accionistas</td><td>~0%</td><td>63.6%</td><td>29.2%</td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:var(--soft);margin-top:9px;font-style:italic">La Fase 1 absorbe la infraestructura (urbanización, pozo, taludes); la Fase 2 capitaliza esa inversión y concentra el retorno.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VALOR + FUENTES Y USOS -->
+    <section>
+      <div class="grid g2">
+        <div class="card">
+          <h2 class="sec" style="margin-bottom:11px">Creación de Valor · Retorno vs. Costo de Capital</h2>
+          <div class="chart-box"><canvas id="chSpread"></canvas></div>
+        </div>
+        <div class="card">
+          <h2 class="sec" style="margin-bottom:11px">Estructura de Capital · Fase 1</h2>
+          <div class="su-bar">
+            <div style="width:69.6%;background:var(--navy)"></div>
+            <div style="width:14.5%;background:var(--teal)"></div>
+            <div style="width:8.6%;background:var(--gold)"></div>
+            <div style="width:7.4%;background:var(--blue)"></div>
+          </div>
+          <div class="su-leg">
+            <span><i style="background:var(--navy)"></i>Deuda bancaria 69.6% · Q105.0M</span>
+            <span><i style="background:var(--teal)"></i>Enganches 14.5% · Q21.8M</span>
+            <span><i style="background:var(--gold)"></i>Terreno 8.6% · Q12.9M</span>
+            <span><i style="background:var(--blue)"></i>Socios 7.4% · Q11.2M</span>
+          </div>
+          <table style="margin-top:14px">
+            <thead><tr><th>Fase 2 · fuente</th><th>Aporte</th><th>%</th></tr></thead>
+            <tbody>
+              <tr><td>Enganches</td><td>Q137.8M</td><td>91.5%</td></tr>
+              <tr><td>Terreno</td><td>Q12.8M</td><td>8.5%</td></tr>
+            </tbody>
+            <tfoot><tr><td>Total F2</td><td>Q150.5M</td><td>100%</td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCENARIOS ESTRATEGICOS -->
+    <section>
+      <h2 class="sec">Decisión Estratégica · Fase 2 (construcción Q180M · promoción 1% · sin bodegas · entregas = fin de obra)</h2>
+      <div class="vs2">
+        <div class="opt win">
+          <div style="display:flex;justify-content:space-between;align-items:center"><h3>A · Vender rápido</h3><span class="wtag">✓ RECOMENDADO</span></div>
+          <div class="od">25 aptos/mes · obra 18 meses · sin alza de precio</div>
+          <div class="om"><span>TIR Accionistas</span><b style="color:var(--gold)">52.4%</b></div>
+          <div class="om"><span>TIR Proyecto</span><b>15.7%</b></div>
+          <div class="om"><span>Utilidad neta</span><b>Q 29.3 M</b></div>
+          <div class="om"><span>Costo financiero</span><b>Q 23.1 M</b></div>
+          <div class="om"><span>1ª entrega</span><b>Oct 2028</b></div>
+        </div>
+        <div class="opt">
+          <h3>B · Vender lento + precio</h3>
+          <div class="od">14 aptos/mes · obra 26 meses · +3% precio anual</div>
+          <div class="om"><span>TIR Accionistas</span><b style="color:var(--navy)">41.7%</b></div>
+          <div class="om"><span>TIR Proyecto</span><b>14.2%</b></div>
+          <div class="om"><span>Utilidad neta</span><b>Q 30.5 M</b></div>
+          <div class="om"><span>Costo financiero</span><b>Q 28.8 M</b></div>
+          <div class="om"><span>1ª entrega</span><b>Jun 2029</b></div>
+        </div>
+      </div>
+      <div class="reco" style="margin-top:14px">
+        <h3>★ Recomendación: acelerar ventas y obra (Escenario A)</h3>
+        <p>+10.7 pp de TIR de accionistas, entrega ≈8 meses antes y Q5.7 M menos de costo financiero. El alza de precio del 3% anual aporta solo Q1.2 M más de utilidad absoluta — el valor del dinero en el tiempo favorece vender rápido.</p>
+      </div>
+    </section>
+
+    <!-- RIESGOS -->
+    <section>
+      <h2 class="sec">Riesgos Clave y Mitigantes</h2>
+      <div class="card">
+        <div class="risk"><span class="lvl alto">Alto</span><div><b>Licencia INAB pendiente (Fase 1).</b> Limita el movimiento de tierras integral y la ruta crítica. <i>Mitigante:</i> frentes de trabajo habilitados (pozo, contenciones, campamento) avanzan en paralelo.</div></div>
+        <div class="risk"><span class="lvl medio">Medio</span><div><b>Cartera en mora (≈22 clientes 60–90 días).</b> Riesgo de desistimientos y devoluciones. <i>Mitigante:</i> cuadro de seguimiento, planes de pago y liberación/reventa de unidades a mejor precio.</div></div>
+        <div class="risk"><span class="lvl medio">Medio</span><div><b>Sobrecostos de construcción y atrasos.</b> Cada mes de atraso encarece los gastos financieros (≈Q0.27M/mes). <i>Mitigante:</i> presupuesto reforzado a Q180M e imprevistos; política de canje con contratistas.</div></div>
+        <div class="risk"><span class="lvl bajo">Bajo</span><div><b>Tasa / financiamiento.</b> Diferencia BI vs G&T de 0.25 pp (≈Q0.24M en intereses). <i>Mitigante:</i> dos bancos aprobados; se prioriza certeza y velocidad de desembolso.</div></div>
+      </div>
+    </section>
+
+    <!-- VEREDICTO -->
+    <section>
+      <div class="reco" style="background:linear-gradient(120deg,var(--navy),var(--navy2))">
+        <h3>Veredicto de Inversión</h3>
+        <p>El proyecto <b>crea valor de forma consistente</b>: TIR de accionistas del 29.2% (vs. Ke 12.0%) y VPN de Q45.0 M a nivel consolidado, apalancado en una Fase 2 de alta rentabilidad (63.6% TIR) financiada mayormente por enganches. Los riesgos son mayoritariamente operativos (licencia INAB, cartera) y cuentan con mitigantes activos. <b>Se recomienda continuar la inversión y ejecutar la Fase 2 bajo la estrategia de venta acelerada (Escenario A).</b></p>
+      </div>
+    </section>
+
+    <footer>
+      <b>Fuente:</b> archivo maestro <code>PU PROJECT 94M Escenario BI 31-05-2026 12 nvls.xlsx</code> (Teams · Periferia Urbana › Boulevard Sur › Flujo Financiero). Hojas: RESUMEN GENERAL, ER F2, SUPUESTOS F2, INDICES, RESUMEN F1/F2.
+      Métricas de los escenarios A/B: modelo pro-forma mensual calibrado (<code>model.py</code>). Documento generado el 19-06-2026 · Cifras en quetzales · Banco Industrial 8%. Memorándum interno — no constituye oferta de valores.
+    </footer>
+
+  </div>
+
+<script>
+Chart.defaults.color="#67748a";Chart.defaults.borderColor="#e2e8f0";Chart.defaults.font.family="Segoe UI, system-ui, sans-serif";
+new Chart(document.getElementById("chSpread"),{type:"bar",
+  data:{labels:["Proyecto","Accionistas","Fase 2 (acc.)"],datasets:[
+    {label:"Retorno (TIR)",data:[12.5,29.2,63.6],backgroundColor:"#0f9d8c",borderRadius:5},
+    {label:"Costo de capital",data:[8.8,12.0,12.0],backgroundColor:"#cdd7e2",borderRadius:5}]},
+  options:{plugins:{legend:{position:"bottom"},title:{display:true,text:"TIR vs. costo de capital (%)",color:"#0f2c4d",font:{size:13,weight:"600"}}},
+    scales:{y:{beginAtZero:true,ticks:{callback:v=>v+"%"}}}}});
+</script>
+</body>
+</html>

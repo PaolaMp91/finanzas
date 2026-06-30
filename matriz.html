@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Matriz Financiera · Boulevard Sur Club Residencial</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{--navy:#0f2c4d;--navy2:#16406e;--blue:#1f73c4;--sky:#e8f0fa;--gold:#c9a227;--teal:#0f9d8c;
+    --bg:#eef1f6;--card:#fff;--line:#e2e8f0;--txt:#1c2733;--muted:#67748a;--soft:#8a96a8;
+    --good:#1f9d57;--bad:#d64545;--warn:#d98a1f;--shadow:0 1px 3px rgba(16,35,60,.07),0 6px 18px rgba(16,35,60,.05);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.45;font-size:13.5px}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 22px 50px}
+  .nav{background:var(--navy);padding:9px 0}.nav .wrap{display:flex;gap:8px;padding-bottom:0}
+  .nav a{color:#b9cce4;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px}
+  .nav a.on{background:rgba(255,255,255,.13);color:#fff}.nav a:hover{color:#fff}
+  .brand{background:linear-gradient(120deg,var(--navy),var(--navy2) 55%,#1d4f86);color:#fff;padding:24px 0;box-shadow:var(--shadow)}
+  .brand .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px;padding-bottom:0}
+  .brand .kick{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase}
+  .brand h1{font-size:24px;font-weight:700;margin-top:3px}
+  .brand .sub{color:#b9cce4;font-size:12.5px;margin-top:4px}
+  .brand .live{background:rgba(31,157,87,.25);border:1px solid rgba(82,217,135,.5);color:#aef0c8;font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+  .dot{width:7px;height:7px;border-radius:50%;background:#52d987;display:inline-block;box-shadow:0 0 0 3px rgba(82,217,135,.25)}
+  section{margin-top:26px}
+  h2.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.1px;color:var(--navy);font-weight:800;margin-bottom:13px;display:flex;align-items:center;gap:9px}
+  h2.sec::before{content:"";width:4px;height:15px;background:var(--gold);border-radius:3px}
+  .grid{display:grid;gap:14px}.g5{grid-template-columns:repeat(5,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1.25fr 1fr}
+  @media(max-width:1000px){.g5,.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
+  @media(max-width:560px){.g5,.g4{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .kpi .kl{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .kv{font-size:23px;font-weight:800;color:var(--navy);margin-top:6px}
+  .kpi .ks{color:var(--soft);font-size:11px;margin-top:4px}
+  .kpi.hero{background:linear-gradient(150deg,var(--navy),var(--navy2));border:none}
+  .kpi.hero .kl{color:#a9c2e0}.kpi.hero .kv{color:#fff}.kpi.hero .ks{color:#94aece}
+  .kpi.gold .kv{color:var(--gold)}.kpi.teal .kv{color:var(--teal)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;background:#f7f9fc;position:sticky;top:0}
+  tbody tr:hover{background:#f6f9fd}
+  tfoot td{font-weight:800;border-top:2px solid var(--navy);border-bottom:none;color:var(--navy)}
+  .prog{position:relative;height:16px;background:#eef2f7;border-radius:8px;overflow:hidden;min-width:90px}
+  .prog>div{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--teal),#3bbfa9);border-radius:8px}
+  .prog span{position:absolute;right:6px;top:0;font-size:10px;font-weight:700;color:var(--navy);line-height:16px}
+  .chart-box{position:relative;height:260px}
+  .pos{color:var(--good);font-weight:700}.neg{color:var(--bad);font-weight:700}
+  footer{color:var(--muted);font-size:11px;border-top:1px solid var(--line);padding-top:16px;margin-top:26px}
+  footer code{background:#eef2f7;padding:1px 6px;border-radius:4px;color:var(--navy)}
+</style></head>
+<body>
+  <div class="nav"><div class="wrap">
+    <a href="index.html">Dashboard operativo</a>
+    <a href="brief.html">Investment Brief</a>
+    <a href="matriz.html" class="on">Matriz · Ejecutado vs Proyectado</a>
+  </div></div>
+
+  <div class="brand"><div class="wrap">
+    <div>
+      <div class="kick">Conectado a la Matriz Financiera</div>
+      <h1>Boulevard Sur Club Residencial</h1>
+      <div class="sub" id="sub"></div>
+    </div>
+    <div style="text-align:right">
+      <span class="live"><span class="dot"></span> <span id="liveTxt"></span></span>
+    </div>
+  </div></div>
+
+  <div class="wrap">
+    <section>
+      <h2 class="sec">Indicadores Consolidados de la Matriz <span style="font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">· Banco Industrial 8%</span></h2>
+      <div class="grid g5" id="kpis"></div>
+    </section>
+
+    <section>
+      <h2 class="sec">Cuadro de Control Financiero · Ejecutado vs. Proyectado</h2>
+      <div class="grid g2">
+        <div class="card" style="overflow:auto;max-height:560px">
+          <table>
+            <thead><tr><th>Rubro</th><th>Proyectado Q</th><th>Proyectado US$</th><th>Ejecutado Q</th><th>Por ejecutar Q</th><th>Avance</th></tr></thead>
+            <tbody id="ctrlBody"></tbody>
+            <tfoot id="ctrlFoot"></tfoot>
+          </table>
+        </div>
+        <div class="card">
+          <div class="chart-box" style="height:300px"><canvas id="chTop"></canvas></div>
+          <div id="execSummary" style="margin-top:14px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="sec">Rentabilidad por Fase y por Banco · valores de la matriz</h2>
+      <div class="grid g2">
+        <div class="card">
+          <table>
+            <thead><tr><th>Métrica</th><th>Fase 1</th><th>Fase 2</th><th>General BI</th><th>General G&amp;T</th></tr></thead>
+            <tbody id="metBody"></tbody>
+          </table>
+        </div>
+        <div class="card"><div class="chart-box"><canvas id="chTir"></canvas></div></div>
+      </div>
+    </section>
+
+    <footer id="foot"></footer>
+  </div>
+
+<script>
+const M = {"corte": "Enero 2026", "actualizado": "18/06/2026", "control": [{"rubro": "TERRENO", "proyectado": 25240116.88, "ejecutado": 0.0, "usd": 3235912.4205128206, "por_ejecutar": 25240116.88, "pct": 0.0}, {"rubro": "ESTUDIOS", "proyectado": 1682496.31, "ejecutado": 440492.07, "usd": 215704.65512820514, "por_ejecutar": 1242004.24, "pct": 0.2618086395684279}, {"rubro": "HONORARIOS ARQUITECTURA", "proyectado": 3189542.33, "ejecutado": 1360699.28, "usd": 408915.68333333335, "por_ejecutar": 1828843.05, "pct": 0.42661270465095225}, {"rubro": "PERMISOS Y LICENCIAS", "proyectado": 6547235.48, "ejecutado": 143308.82749999998, "usd": 839389.1641025642, "por_ejecutar": 6403926.652500001, "pct": 0.021888448634201252}, {"rubro": "REQUERIMIENTOS ADICIONALES", "proyectado": 185389.25, "ejecutado": 117502.51999999999, "usd": 23767.852564102566, "por_ejecutar": 67886.73000000001, "pct": 0.6338151753675038}, {"rubro": "FIANZAS Y SEGUROS", "proyectado": 2603962.7267342964, "ejecutado": 0.0, "usd": 333841.3752223457, "por_ejecutar": 2603962.7267342964, "pct": 0.0}, {"rubro": "PROMOCIÓN", "proyectado": 4703106.671388235, "ejecutado": 479210.91490000003, "usd": 602962.3937677224, "por_ejecutar": 4223895.756488235, "pct": 0.101892418859075}, {"rubro": "SHOWROOM/CASA MODELO", "proyectado": 1646114.3025490178, "ejecutado": 1064254.9100000001, "usd": 211040.29519859204, "por_ejecutar": 581859.3925490177, "pct": 0.6465255227732334}, {"rubro": "TRÁMITES LEGALES", "proyectado": 4533105.8988, "ejecutado": 270342.4938, "usd": 581167.4229230769, "por_ejecutar": 4262763.404999999, "pct": 0.05963736560215036}, {"rubro": "VENTAS", "proyectado": 22661072.11089439, "ejecutado": 531745.17, "usd": 2905265.6552428706, "por_ejecutar": 22129326.940894388, "pct": 0.02346513736851672}, {"rubro": "FHA", "proyectado": 10111349.934679326, "ejecutado": 0.0, "usd": 1296326.9147024776, "por_ejecutar": 10111349.934679326, "pct": 0.0}, {"rubro": "ADMINISTRACIÓN Y DESARROLLO", "proyectado": 18764707.663511857, "ejecutado": 1633336.4000000001, "usd": 2405731.7517322893, "por_ejecutar": 17131371.26351186, "pct": 0.08704299738045146}, {"rubro": "VARIOS", "proyectado": 3809536.7459999984, "ejecutado": 107590.56000000001, "usd": 488402.1469230767, "por_ejecutar": 3701946.1859999984, "pct": 0.028242426093663425}, {"rubro": "IMPREVISTOS", "proyectado": 1934591.12, "ejecutado": 5058.02, "usd": 248024.5025641026, "por_ejecutar": 1929533.1, "pct": 0.0026145162911737135}, {"rubro": "COSTOS DE CONSTRUCCIÓN", "proyectado": 243103211.1430547, "ejecutado": 203537.16, "usd": 31167078.351673678, "por_ejecutar": 242899673.9830547, "pct": 0.0008372458720021927}, {"rubro": "COSTOS FINANCIEROS", "proyectado": 27125661.55097778, "ejecutado": 339.36, "usd": 3477648.9167920235, "por_ejecutar": 27126000.91097778, "pct": 1.2510662619683365e-05}, {"rubro": "IMPUESTOS", "proyectado": 20758765.603379626, "ejecutado": 3626.3000000000006, "usd": 2661380.2055614907, "por_ejecutar": 20755139.303379625, "pct": 0.00017468765095597118}], "totals": {"costo_total": 398599965.7219692, "costo_total_usd": 51102559.707944766, "ejecutado_total": 6360365.2661999995, "ventas": 449713673.7807922, "ventas_usd": 57655599.202665664, "utilidad": 51113708.058823, "tc": 7.8, "margen": 0.11365833649020375}, "metrics": {"F1": {"ventas": 144062230.5776708, "util": -6900679.298226833, "margen": -0.047900683409912555, "tir_proy": 2.9802322387695314e-09, "tir_acc": 2.9802322387695314e-09}, "F2": {"ventas": 305651443.2031214, "util": 58014387.35704988, "margen": 0.18980570400414004, "tir_proy": 0.21911197304725646, "tir_acc": 0.6363658726215362}, "BI": {"ventas": 449713673.7807922, "util": 51113708.05882299, "margen": 0.11365833649020374, "tir_proy": 0.1253454864025116, "tir_acc": 0.2918170869350434}, "GT": {"ventas": 449450133.48818505, "util": 52216168.91670996, "margen": 0.116177891663887, "tir_proy": 0.1312436640262604, "tir_acc": 0.3091308295726777}}, "fuente": "76be16e9-PU_PROJECT_94M_Escenario_BI_31052026_12_nvls_1.xlsx"};
+const fmtQ=v=>"Q "+Math.round(v).toLocaleString("es-GT");
+const fmtM=v=>"Q "+(v/1e6).toFixed(1)+" M";
+const pct=v=>(v*100).toFixed(1)+"%";
+
+document.getElementById("sub").textContent="Cuadro de control al "+M.corte+" · TC US$ "+M.totals.tc+" · Matriz: "+M.fuente;
+document.getElementById("liveTxt").textContent="Actualizado "+M.actualizado;
+
+// KPIs
+const bi=M.metrics.BI, f2=M.metrics.F2;
+const kpis=[
+  ["hero","Ventas Totales",fmtM(M.totals.ventas),"F1+F2 · matriz"],
+  ["hero","Costo Total",fmtM(M.totals.costo_total),"Inversión proyectada"],
+  ["gold","TIR Accionistas",pct(bi.tir_acc),"G&T "+pct(M.metrics.GT.tir_acc)],
+  ["teal","TIR Proyecto",pct(bi.tir_proy),"G&T "+pct(M.metrics.GT.tir_proy)],
+  ["","Utilidad / Margen",fmtM(M.totals.utilidad),"Margen "+pct(M.totals.margen)],
+];
+document.getElementById("kpis").innerHTML=kpis.map(k=>
+  `<div class="card kpi ${k[0]}"><div class="kl">${k[1]}</div><div class="kv">${k[2]}</div><div class="ks">${k[3]}</div></div>`).join("");
+
+// Control table
+const fmtU=v=>"$ "+Math.round(v).toLocaleString("es-GT");
+const ctrl=[...M.control].sort((a,b)=>b.proyectado-a.proyectado);
+document.getElementById("ctrlBody").innerHTML=ctrl.map(r=>{
+  const p=Math.min(r.pct,1)*100;
+  return `<tr><td>${r.rubro}</td><td>${fmtQ(r.proyectado)}</td><td style="color:var(--muted)">${fmtU(r.usd)}</td><td>${fmtQ(r.ejecutado)}</td><td>${fmtQ(r.por_ejecutar)}</td>
+    <td><div class="prog"><div style="width:${p.toFixed(0)}%"></div><span>${(r.pct*100).toFixed(0)}%</span></div></td></tr>`;
+}).join("");
+const tEjec=M.totals.ejecutado_total, tProy=M.totals.costo_total, tFalta=tProy-tEjec;
+document.getElementById("ctrlFoot").innerHTML=
+  `<tr><td>COSTO TOTAL</td><td>${fmtQ(tProy)}</td><td>${fmtU(M.totals.costo_total_usd)}</td><td>${fmtQ(tEjec)}</td><td>${fmtQ(tFalta)}</td><td>${(tEjec/tProy*100).toFixed(1)}%</td></tr>`;
+document.getElementById("execSummary").innerHTML=
+  `<div style="font-size:12.5px;color:var(--muted)">Avance global de ejecución del costo del proyecto:
+   <b style="color:var(--navy);font-size:15px">${(tEjec/tProy*100).toFixed(1)}%</b> · Ejecutado ${fmtM(tEjec)} de ${fmtM(tProy)}.
+   Por ejecutar: <b>${fmtM(tProy-tEjec)}</b>.</div>`;
+
+// Metrics table
+const order=[["Ventas","ventas","M"],["Utilidad neta","util","M"],["Margen neto","margen","P"],["TIR proyecto","tir_proy","P"],["TIR accionistas","tir_acc","P"]];
+const cols=["F1","F2","BI","GT"];
+document.getElementById("metBody").innerHTML=order.map(o=>{
+  const cells=cols.map(c=>{const v=M.metrics[c][o[1]];
+    const t=o[2]==="M"?fmtM(v):pct(v);
+    const cls=(o[1]==="util"||o[1]==="margen")&&v<0?"neg":(v>0&&o[2]==="P"?"pos":"");
+    return `<td class="${cls}">${t}</td>`;}).join("");
+  return `<tr><td>${o[0]}</td>${cells}</tr>`;
+}).join("");
+
+// Charts
+Chart.defaults.color="#67748a";Chart.defaults.borderColor="#e2e8f0";Chart.defaults.font.family="Segoe UI, system-ui, sans-serif";
+const top=[...M.control].sort((a,b)=>b.proyectado-a.proyectado).slice(0,7);
+new Chart(document.getElementById("chTop"),{type:"bar",
+  data:{labels:top.map(r=>r.rubro.length>18?r.rubro.slice(0,17)+"…":r.rubro),
+    datasets:[{label:"Proyectado",data:top.map(r=>r.proyectado/1e6),backgroundColor:"#cdd7e2",borderRadius:4},
+              {label:"Ejecutado",data:top.map(r=>r.ejecutado/1e6),backgroundColor:"#0f9d8c",borderRadius:4}]},
+  options:{indexAxis:"y",plugins:{legend:{position:"bottom"},title:{display:true,text:"Top rubros: proyectado vs ejecutado (Q M)",color:"#0f2c4d",font:{size:13,weight:"600"}}},
+    scales:{x:{ticks:{callback:v=>"Q"+v+"M"}}}}});
+new Chart(document.getElementById("chTir"),{type:"bar",
+  data:{labels:["Fase 1","Fase 2","General BI","General G&T"],
+    datasets:[{label:"TIR Accionistas",data:cols.map(c=>M.metrics[c].tir_acc*100),backgroundColor:"#c9a227",borderRadius:5},
+              {label:"TIR Proyecto",data:cols.map(c=>M.metrics[c].tir_proy*100),backgroundColor:"#16406e",borderRadius:5}]},
+  options:{plugins:{legend:{position:"bottom"},title:{display:true,text:"TIR por fase y banco (%)",color:"#0f2c4d",font:{size:13,weight:"600"}}},
+    scales:{y:{beginAtZero:true,ticks:{callback:v=>v+"%"}}}}});
+
+document.getElementById("foot").innerHTML=
+  "<b>Generado desde la matriz</b> <code>"+M.fuente+"</code> mediante <code>build_from_matrix.py</code> (hojas \"Dashboard (2)\" y \"RESUMEN GENERAL\"). "+
+  "Para refrescar con nuevos valores, descargue la última versión de la matriz desde Teams › Periferia Urbana › Boulevard Sur › Flujo Financiero y vuelva a ejecutar el script. Cifras en quetzales · Banco Industrial 8%.";
+</script>
+</body></html>
