@@ -7,7 +7,7 @@
 <meta name="description" content="Boulevard Sur, Club Residencial. Apartamentos de 2 y 3 habitaciones en Zona 8 de Mixco, Ciudad San Cristóbal, Guatemala. Vive al ritmo del sur.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Manrope:wght@300;400;500;600;700;800&family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Paleta oficial · B SUR Brandbook */
@@ -46,9 +46,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;justify-content
   padding:22px clamp(20px,4vw,56px);mix-blend-mode:normal;transition:background .5s,backdrop-filter .5s;pointer-events:none}
 nav.solid{background:rgba(7,29,40,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 nav .logo{pointer-events:auto;display:flex;flex-direction:column;line-height:1}
-nav .logo b{font-family:'Archivo';font-weight:800;font-size:clamp(17px,1.6vw,21px);letter-spacing:.14em}
-nav .logo b span{color:var(--oro)}
-nav .logo small{font-size:9px;letter-spacing:.52em;color:var(--oro-claro);margin-top:5px;font-weight:600}
+nav .logo b{font-family:'Great Vibes','Brush Script MT',cursive;font-weight:400;font-size:clamp(26px,2.4vw,34px);
+  letter-spacing:.02em;text-transform:none}
+nav .logo b span{color:var(--oro);font-size:.62em;margin-left:6px}
+nav .logo small{font-size:9px;letter-spacing:.52em;color:var(--oro-claro);margin-top:4px;font-weight:600}
+.logo-script{font-family:'Great Vibes','Brush Script MT',cursive;font-weight:400;text-transform:none}
 nav .links{pointer-events:auto;display:flex;gap:clamp(14px,2.4vw,34px);align-items:center}
 nav .links a{color:rgba(255,255,255,.82);text-decoration:none;font-size:12px;letter-spacing:.18em;font-weight:600;
   text-transform:uppercase;transition:color .3s}
@@ -165,6 +167,37 @@ section.block{position:relative;padding:clamp(90px,14vh,160px) clamp(22px,6vw,90
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:13.5px}
 .dist .d b{color:var(--oro);font-family:'Archivo';font-weight:800;white-space:nowrap;margin-left:12px}
 
+/* ============ Galería zoom 3D ============ */
+#galeria .head{padding:clamp(90px,14vh,150px) clamp(22px,6vw,90px) 30px}
+.zoomer{position:relative;height:100vh;overflow:hidden;perspective:1100px}
+.zoomer .zimg{position:absolute;inset:0;background-position:center;background-size:cover;will-change:transform;
+  transform:scale(1.05)}
+.zoomer .zshade{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(7,29,40,.72) 100%)}
+.zoomer .zcap{position:absolute;left:clamp(22px,6vw,90px);bottom:clamp(50px,10vh,110px);z-index:3;max-width:560px}
+.zoomer .zcap .tag{font-size:11px;letter-spacing:.5em;text-transform:uppercase;color:var(--oro-claro);font-weight:700;margin-bottom:12px}
+.zoomer .zcap h3{font-family:'Archivo';font-weight:900;font-stretch:110%;text-transform:uppercase;
+  font-size:clamp(28px,4.4vw,56px);line-height:1}
+.zoomer .zcap h3 span{color:var(--oro)}
+
+/* ============ Torre D ============ */
+#torred{position:relative;padding:clamp(90px,14vh,160px) clamp(22px,6vw,90px);overflow:hidden;
+  background:linear-gradient(160deg,#0d1f14 0%,var(--verde-oscuro) 60%,#0B2836 130%)}
+#torred::before{content:'D';position:absolute;right:-2%;top:50%;transform:translateY(-50%);font-family:'Archivo';
+  font-weight:900;font-size:clamp(300px,42vw,640px);color:rgba(229,207,163,.05);line-height:1;pointer-events:none}
+#torred .box{position:relative;max-width:860px;border:1.5px solid rgba(201,169,106,.5);border-radius:30px;
+  padding:clamp(34px,5vw,60px);background:rgba(7,29,40,.45);backdrop-filter:blur(10px)}
+#torred .pre{display:inline-flex;align-items:center;gap:10px;padding:10px 22px;border-radius:100px;
+  background:var(--oro);color:var(--azul-noche);font-size:11px;font-weight:800;letter-spacing:.3em;
+  text-transform:uppercase;margin-bottom:24px}
+#torred h2{font-weight:900;font-stretch:110%;text-transform:uppercase;font-size:clamp(36px,6vw,76px);line-height:.98}
+#torred h2 span{color:transparent;-webkit-text-stroke:1.5px var(--oro)}
+#torred p{margin-top:18px;font-size:clamp(14px,1.5vw,18px);color:rgba(255,255,255,.82);font-weight:300;
+  line-height:1.7;max-width:560px}
+#torred .cta{display:inline-flex;margin-top:30px;padding:16px 34px;border-radius:100px;background:var(--oro);
+  color:var(--azul-noche);font-weight:800;font-size:13px;letter-spacing:.16em;text-transform:uppercase;
+  text-decoration:none;transition:.35s}
+#torred .cta:hover{transform:translateY(-3px);box-shadow:0 18px 44px -12px rgba(201,169,106,.75)}
+
 /* ============ Plantas ============ */
 #plantas{background:linear-gradient(180deg,var(--azul-noche),var(--azul-profundo))}
 .plans{display:grid;grid-template-columns:1fr 1fr;gap:26px}
@@ -248,7 +281,7 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
 <div id="progress"></div>
 
 <nav id="nav">
-  <div class="logo"><b>BOULEVARD <span>SUR</span></b><small>CLUB RESIDENCIAL</small></div>
+  <div class="logo"><b>Boulevard <span>Sur</span></b><small>CLUB RESIDENCIAL</small></div>
   <div class="links">
     <a href="#proyecto">Proyecto</a>
     <a href="#plantas">Plantas</a>
@@ -268,7 +301,7 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
       <span class="line"><span>RITMO <em>DEL SUR</em></span></span>
     </h1>
     <p class="sub">Bienvenido a <b>Boulevard Sur</b> · Tu propio Club Residencial</p>
-    <div class="badge"><span class="dot"></span> ¡Torre C ya a la venta!</div>
+    <div class="badge"><span class="dot"></span> Torre C a la venta · Torre D próximamente</div>
   </div>
   <div id="scrollcue"><div class="mouse"></div><small>Desliza para descubrirlo</small></div>
 </header>
@@ -312,13 +345,13 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
   </div>
 </section>
 
-<!-- ============ ACTO 3 · INTERIOR → PISCINA ============ -->
+<!-- ============ ACTO 3 · INTERIOR → PISCINA (render real) ============ -->
 <section class="pin-stage" id="act3">
   <div class="frame">
-    <video id="v3" muted playsinline loop preload="auto" poster="assets/img/interior.png">
-      <source src="assets/video/clip3-interior-piscina.mp4" type="video/mp4">
+    <video id="v3" muted playsinline loop preload="auto" poster="assets/img/piscina-real.jpg">
+      <source src="assets/video/clip3-piscina.mp4" type="video/mp4">
     </video>
-    <div class="still" id="act3Pool" style="background-image:url('assets/img/piscina.png');opacity:0"></div>
+    <div class="still" id="act3Interior" style="background-image:url('assets/img/interior.png')"></div>
     <div class="shade"></div>
     <div class="whip" id="whip3"></div>
   </div>
@@ -329,9 +362,25 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
     <p>Top de cuarzo, piso cerámico imitación madera y luz que entra a raudales.</p>
   </div>
   <div class="caption" id="cap3b" style="opacity:0">
-    <div class="tag">El club</div>
+    <div class="tag">El club · Render real</div>
     <h2>Y DE PRONTO… <span class="gold">LA PISCINA</span></h2>
-    <p>Piscina, gimnasio, roof top, firepit y cancha polideportiva. Un área exclusiva para relajarte y desconectarte.</p>
+    <p>Piscina, roof top, firepit y cancha polideportiva. Un área exclusiva para relajarte y desconectarte.</p>
+  </div>
+</section>
+
+<!-- ============ ACTO 4 · GYM (render real) ============ -->
+<section class="pin-stage" id="act4">
+  <div class="frame">
+    <video id="v4" muted playsinline loop preload="auto" poster="assets/img/gym-real.jpg">
+      <source src="assets/video/clip4-gym.mp4" type="video/mp4">
+    </video>
+    <div class="shade"></div>
+  </div>
+  <div class="num">04</div>
+  <div class="caption">
+    <div class="tag">Amenidades · Render real</div>
+    <h2>ENTRENA <span class="gold">EN CASA</span></h2>
+    <p>Gimnasio equipado dentro del club residencial: tu rutina, a pasos de tu apartamento.</p>
   </div>
 </section>
 
@@ -403,6 +452,29 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
     <div class="nw reveal-up"><div class="d">Comunidad</div>
       <h4>Open House &amp; ExpoCasa 2025</h4>
       <p>Cientos de familias ya conocieron el proyecto en nuestro Open House y en ExpoCasa. Visita el showroom y vívelo tú también.</p></div>
+  </div>
+</section>
+
+<!-- ============ GALERÍA ZOOM 3D ============ -->
+<section id="galeria">
+  <div class="head reveal-up" style="max-width:900px">
+    <div class="tag" style="font-size:11px;letter-spacing:.5em;text-transform:uppercase;color:var(--oro);font-weight:700;margin-bottom:16px">Galería inmersiva</div>
+    <h2 style="font-weight:900;font-stretch:110%;text-transform:uppercase;font-size:clamp(32px,5vw,64px);line-height:1.02">Entra al proyecto<br>sin salir del scroll</h2>
+  </div>
+  <div class="zoomer" data-zoom="1.55">
+    <div class="zimg" style="background-image:url('assets/img/piscina-real.jpg')"></div>
+    <div class="zshade"></div>
+    <div class="zcap"><div class="tag">Render real · Club</div><h3>LA PISCINA <span>TE ESPERA</span></h3></div>
+  </div>
+  <div class="zoomer" data-zoom="1.6">
+    <div class="zimg" style="background-image:url('assets/img/gym-real.jpg')"></div>
+    <div class="zshade"></div>
+    <div class="zcap"><div class="tag">Render real · Amenidades</div><h3>GIMNASIO <span>DEL CLUB</span></h3></div>
+  </div>
+  <div class="zoomer" data-zoom="1.5">
+    <div class="zimg" style="background-image:url('assets/img/hero-edificio.png')"></div>
+    <div class="zshade"></div>
+    <div class="zcap"><div class="tag">El conjunto</div><h3>VIVE ENTRE <span>BOSQUE</span></h3></div>
   </div>
 </section>
 
@@ -482,6 +554,17 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
       </ul>
       <span class="pick">Cotizar esta planta →</span>
     </article>
+  </div>
+</section>
+
+<!-- ============ TORRE D ============ -->
+<section id="torred">
+  <div class="box reveal-up">
+    <span class="pre">◆ Próximo lanzamiento</span>
+    <h2>TORRE <span>D</span></h2>
+    <p><b style="color:var(--oro-claro)">¿Listo para ser de los primeros?</b> La siguiente torre de Boulevard Sur ya viene.
+      Regístrate hoy y accede antes que nadie a precios de preventa, los mejores niveles y las mejores vistas.</p>
+    <a class="cta" id="torredCta" href="#cotizador">Quiero ser de los primeros →</a>
   </div>
 </section>
 
@@ -635,7 +718,7 @@ act2.fromTo('#act2 .frame',{scale:1.18,rotateZ:2.2,filter:'brightness(.4)'},
     .to('#whip2',{opacity:1,xPercent:120,duration:.25,ease:'power4.in'},1.4)
     .to('#act2 .frame',{scale:1.07,rotateZ:-1.4,duration:.5},1.35);
 
-/* ---------- ACTO 3 · interior → golpe → piscina ---------- */
+/* ---------- ACTO 3 · interior → golpe → piscina real ---------- */
 const v3 = document.getElementById('v3');
 ScrollTrigger.create({
   trigger:'#act3',start:'top 60%',onEnter:()=>{v3.play().catch(()=>{})},onLeave:()=>v3.pause(),
@@ -646,13 +729,42 @@ const act3 = gsap.timeline({
 });
 act3.fromTo('#act3 .frame',{scale:1.12,filter:'brightness(.45)'},{scale:1,filter:'brightness(1)',duration:.7},0)
     .fromTo('#cap3a',{opacity:0,y:70},{opacity:1,y:0,duration:.5},.15)
-    /* movimiento brusco: whip + sacudida hacia la piscina */
+    /* zoom 3D dentro del interior antes del golpe */
+    .to('#act3Interior',{scale:1.28,duration:1,ease:'none'},.1)
+    /* movimiento brusco: whip + sacudida hacia la piscina real */
     .to('#cap3a',{opacity:0,x:-120,skewX:-10,duration:.3},1.15)
     .to('#whip3',{opacity:1,xPercent:140,duration:.22,ease:'power4.in'},1.18)
     .fromTo('#act3 .frame',{x:0},{keyframes:[{x:-34,duration:.06},{x:26,duration:.06},{x:-14,duration:.06},{x:0,duration:.08}]},1.2)
-    .to('#act3Pool',{opacity:1,duration:.45},1.32)
+    .to('#act3Interior',{opacity:0,duration:.4},1.3)
     .fromTo('#cap3b',{opacity:0,x:120,skewX:10},{opacity:1,x:0,skewX:0,duration:.55,ease:'power4.out'},1.5)
     .to('#act3 .frame',{scale:1.05,duration:.8,ease:'none'},1.6);
+
+/* ---------- ACTO 4 · gym real ---------- */
+const v4 = document.getElementById('v4');
+ScrollTrigger.create({
+  trigger:'#act4',start:'top 60%',onEnter:()=>{v4.play().catch(()=>{})},onLeave:()=>v4.pause(),
+  onEnterBack:()=>{v4.play().catch(()=>{})},onLeaveBack:()=>v4.pause()
+});
+const act4 = gsap.timeline({
+  scrollTrigger:{trigger:'#act4',start:'top top',end:'+=160%',pin:true,scrub:.5,anticipatePin:1}
+});
+act4.fromTo('#act4 .frame',{scale:1.2,rotateZ:-1.6,filter:'brightness(.4)'},
+            {scale:1,rotateZ:0,filter:'brightness(1)',duration:.9,ease:'power3.out'},0)
+    .fromTo('#act4 .caption',{opacity:0,y:80},{opacity:1,y:0,duration:.5},.3)
+    .to('#act4 .frame',{scale:1.08,duration:.7,ease:'none'},1.1);
+
+/* ---------- Galería · zoom 3D al hacer scroll ---------- */
+gsap.utils.toArray('.zoomer').forEach(z=>{
+  const img = z.querySelector('.zimg');
+  const cap = z.querySelector('.zcap');
+  const zoom = parseFloat(z.dataset.zoom || 1.5);
+  gsap.timeline({
+    scrollTrigger:{trigger:z,start:'top top',end:'+=120%',pin:true,scrub:.5,anticipatePin:1}
+  })
+  .fromTo(img,{scale:1.05,rotateZ:0},{scale:zoom,rotateZ:.6,ease:'none',duration:1.6},0)
+  .fromTo(cap,{opacity:0,y:60},{opacity:1,y:0,duration:.4},.1)
+  .to(cap,{opacity:0,y:-40,duration:.3},1.25);
+});
 
 /* ---------- Marquee ---------- */
 gsap.to('#mtrack',{xPercent:-33.33,ease:'none',repeat:-1,duration:16});
