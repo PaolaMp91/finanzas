@@ -149,6 +149,16 @@ section.block{position:relative;padding:clamp(90px,14vh,160px) clamp(22px,6vw,90
 .loc .card .txt{position:absolute;left:26px;bottom:24px;right:26px}
 .loc .card .txt h3{font-size:20px;text-transform:uppercase;letter-spacing:.06em}
 .loc .card .txt p{font-size:14px;color:rgba(255,255,255,.8);margin-top:6px;font-weight:300}
+.lema{margin:70px auto 0;max-width:820px;text-align:center;font-family:'Archivo';font-weight:300;
+  font-size:clamp(20px,2.6vw,32px);line-height:1.4;color:rgba(255,255,255,.9);border:0}
+.lema span{color:var(--oro)}
+.news{margin-top:70px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.news .nw{border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:24px 22px;background:rgba(255,255,255,.03);
+  transition:.4s var(--ease-lux)}
+.news .nw:hover{border-color:var(--oro);transform:translateY(-4px)}
+.news .nw .d{font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--oro-claro);font-weight:700;margin-bottom:10px}
+.news .nw h4{font-size:16.5px;line-height:1.3;text-transform:uppercase;letter-spacing:.03em}
+.news .nw p{margin-top:8px;font-size:13px;color:rgba(255,255,255,.7);font-weight:300;line-height:1.6}
 .dist{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:520px){.dist{grid-template-columns:1fr}}
 .dist .d{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-radius:12px;
@@ -252,13 +262,13 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
   <div class="bg" id="heroBg"></div>
   <div class="veil"></div>
   <div class="content">
-    <div class="kicker">Zona 8 de Mixco · Ciudad San Cristóbal · Guatemala</div>
+    <div class="kicker">Redefiniendo a San Cristóbal · Zona 8 de Mixco · Guatemala</div>
     <h1 id="heroTitle">
       <span class="line"><span>VIVE AL</span></span>
       <span class="line"><span>RITMO <em>DEL SUR</em></span></span>
     </h1>
     <p class="sub">Bienvenido a <b>Boulevard Sur</b> · Tu propio Club Residencial</p>
-    <div class="badge"><span class="dot"></span> Algo grande se está descubriendo</div>
+    <div class="badge"><span class="dot"></span> ¡Torre C ya a la venta!</div>
   </div>
   <div id="scrollcue"><div class="mouse"></div><small>Desliza para descubrirlo</small></div>
 </header>
@@ -336,16 +346,20 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
 <section class="block" id="proyecto">
   <div class="head reveal-up">
     <div class="tag">El proyecto</div>
-    <h2>Un nuevo ícono en <br>Ciudad San Cristóbal</h2>
-    <p>Boulevard Sur es el primer club residencial de la zona: tres torres modernas rodeadas de bosque,
-      con amenidades de lujo y la mejor conectividad del sur de la ciudad. Desarrollado por Periferia Urbana.</p>
+    <h2>Tu Nuevo <br>Club Residencial</h2>
+    <p>En Boulevard Sur redefinimos el significado de hogar. En el corazón de San Cristóbal, un plan maestro de
+      7 torres y más de 8 amenidades rodeadas de un extenso bosque: espacios optimizados, abiertos y vibrantes,
+      acentuados con vegetación, ventilación e iluminación naturales. Desarrollado por Periferia Urbana.</p>
   </div>
   <div class="stats">
-    <div class="stat reveal-up"><div class="n" data-count="3">0</div><div class="l">Torres residenciales</div></div>
-    <div class="stat reveal-up"><div class="n" data-count="600"><small>+</small>0</div><div class="l">Apartamentos</div></div>
-    <div class="stat reveal-up"><div class="n" data-count="14379">0</div><div class="l">m² de áreas verdes</div></div>
-    <div class="stat reveal-up"><div class="n" data-count="2027">0</div><div class="l">Entrega primera fase</div></div>
+    <div class="stat reveal-up"><div class="n" data-count="3">0</div><div class="l">Torres en venta</div></div>
+    <div class="stat reveal-up"><div class="n" data-count="12">0</div><div class="l">Niveles por torre</div></div>
+    <div class="stat reveal-up"><div class="n" data-count="216">0</div><div class="l">Apartamentos</div></div>
+    <div class="stat reveal-up"><div class="n" data-count="14379">0</div><div class="l">m² de bosque y áreas verdes</div></div>
   </div>
+
+  <blockquote class="lema reveal-up">«Donde la arquitectura, la naturaleza y la comunidad se unen
+    para crear el <span>hogar de tus sueños</span>.»</blockquote>
 
   <div class="amen-grid">
     <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M2 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M2 19c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M7 11V6a3 3 0 0 1 6 0M13 11V6a3 3 0 0 1 6 0"/></svg>Piscina</div>
@@ -377,6 +391,18 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
       <div class="d reveal-up"><span>SanKris Mall</span><b>17 min</b></div>
       <div class="d reveal-up"><span>Periférico</span><b>17 min</b></div>
     </div>
+  </div>
+
+  <div class="news">
+    <div class="nw reveal-up"><div class="d">Fase 1 · En construcción</div>
+      <h4>Un paso adelante en San Cristóbal</h4>
+      <p>La primera fase contempla 2 torres de apartamentos de 12 niveles con diseño contemporáneo y tecnología eficiente.</p></div>
+    <div class="nw reveal-up"><div class="d">Lanzamiento</div>
+      <h4>¡Torre C ya a la venta!</h4>
+      <p>La nueva torre del proyecto ya está disponible. Elige tu apartamento con la mejor vista del boulevard.</p></div>
+    <div class="nw reveal-up"><div class="d">Comunidad</div>
+      <h4>Open House &amp; ExpoCasa 2025</h4>
+      <p>Cientos de familias ya conocieron el proyecto en nuestro Open House y en ExpoCasa. Visita el showroom y vívelo tú también.</p></div>
   </div>
 </section>
 
@@ -521,12 +547,13 @@ footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,2
   <div class="grid">
     <div>
       <h4>BOULEVARD <span>SUR</span> · CLUB RESIDENCIAL</h4>
-      <p>El primer club residencial del sur de la ciudad. Tres torres, 600+ apartamentos de 2 y 3 habitaciones
-        y 14,379 m² de áreas verdes. Desarrollado por Periferia Urbana.</p>
+      <p>Redefiniendo a San Cristóbal: un plan maestro de 7 torres y más de 8 amenidades rodeadas de un
+        extenso bosque. Hoy: 3 torres en venta, apartamentos de 2 y 3 habitaciones. Desarrollado por Periferia Urbana.</p>
     </div>
     <div>
       <h4>Visítanos</h4>
-      <p>6a avenida 22-80, Zona 8 de Mixco<br>Ciudad San Cristóbal, Guatemala<br>Showroom abierto todos los días</p>
+      <p>6a avenida 22-80, Zona 8 de Mixco<br>Ciudad San Cristóbal, Guatemala<br>Showroom abierto todos los días<br>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=6a+avenida+22-80+zona+8+Mixco+San+Crist%C3%B3bal+Guatemala" target="_blank" rel="noopener">¿Cómo llegar? →</a></p>
     </div>
     <div>
       <h4>Contacto</h4>
