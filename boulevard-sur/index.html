@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boulevard Sur · Club Residencial — Vive al Ritmo del Sur</title>
+<meta name="description" content="Boulevard Sur, Club Residencial. Apartamentos de 2 y 3 habitaciones en Zona 8 de Mixco, Ciudad San Cristóbal, Guatemala. Vive al ritmo del sur.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Paleta oficial · B SUR Brandbook */
+  --verde:#577E2E;
+  --verde-claro:#7FA653;
+  --verde-oscuro:#2E4A17;
+  --azul:#184C61;
+  --azul-profundo:#0B2836;
+  --azul-noche:#071D28;
+  --blanco:#FFFFFF;
+  --gris:#666666;
+  --crema:#F4F1EA;
+  --oro:#C9A96A;
+  --oro-claro:#E5CFA3;
+  --ease-lux:cubic-bezier(.22,1,.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:auto}
+html,body{overscroll-behavior:none}
+body{
+  background:var(--azul-noche);
+  color:var(--blanco);
+  font-family:'Manrope','Avenir Next',Avenir,'Segoe UI',sans-serif;
+  font-weight:400;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.display{font-family:'Archivo','Avenir Next',sans-serif}
+img,video{max-width:100%;display:block}
+::selection{background:var(--verde);color:#fff}
+
+/* ============ Barra de progreso + nav ============ */
+#progress{position:fixed;top:0;left:0;height:3px;width:0%;z-index:1000;
+  background:linear-gradient(90deg,var(--verde) 0%,var(--oro) 100%);box-shadow:0 0 12px rgba(201,169,106,.7)}
+nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;justify-content:space-between;align-items:center;
+  padding:22px clamp(20px,4vw,56px);mix-blend-mode:normal;transition:background .5s,backdrop-filter .5s;pointer-events:none}
+nav.solid{background:rgba(7,29,40,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+nav .logo{pointer-events:auto;display:flex;flex-direction:column;line-height:1}
+nav .logo b{font-family:'Archivo';font-weight:800;font-size:clamp(17px,1.6vw,21px);letter-spacing:.14em}
+nav .logo b span{color:var(--oro)}
+nav .logo small{font-size:9px;letter-spacing:.52em;color:var(--oro-claro);margin-top:5px;font-weight:600}
+nav .links{pointer-events:auto;display:flex;gap:clamp(14px,2.4vw,34px);align-items:center}
+nav .links a{color:rgba(255,255,255,.82);text-decoration:none;font-size:12px;letter-spacing:.18em;font-weight:600;
+  text-transform:uppercase;transition:color .3s}
+nav .links a:hover{color:var(--oro)}
+nav .links a.cta{border:1px solid var(--oro);color:var(--oro);padding:10px 20px;border-radius:100px;transition:.35s}
+nav .links a.cta:hover{background:var(--oro);color:var(--azul-noche)}
+@media(max-width:760px){nav .links a:not(.cta){display:none}}
+
+/* ============ HERO ============ */
+#hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#hero .bg{position:absolute;inset:-6%;background:url('assets/img/cover-manta.jpg') center/cover no-repeat;
+  transform:scale(1.08);filter:brightness(.62) saturate(1.05)}
+#hero .veil{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 50% 110%, rgba(87,126,46,.28), transparent 55%),
+  linear-gradient(180deg, rgba(7,29,40,.68) 0%, rgba(7,29,40,.18) 45%, rgba(7,29,40,.94) 100%)}
+#hero .content{position:relative;text-align:center;padding:0 24px;z-index:2}
+#hero .kicker{font-size:clamp(10px,1.1vw,13px);letter-spacing:.6em;text-transform:uppercase;color:var(--oro-claro);
+  font-weight:600;margin-bottom:26px}
+#hero h1{font-weight:900;font-stretch:112%;text-transform:uppercase;line-height:.95;
+  font-size:clamp(44px,9.5vw,128px);letter-spacing:.01em}
+#hero h1 .line{display:block;overflow:hidden}
+#hero h1 .line span{display:inline-block}
+#hero h1 em{font-style:normal;color:transparent;-webkit-text-stroke:1.5px var(--oro);
+  background:linear-gradient(120deg,var(--oro) 0%,var(--oro-claro) 100%);-webkit-background-clip:text;background-clip:text}
+#hero .sub{margin-top:30px;font-size:clamp(14px,1.6vw,19px);color:rgba(255,255,255,.85);font-weight:300;letter-spacing:.04em}
+#hero .sub b{color:#fff;font-weight:700}
+#hero .badge{display:inline-flex;gap:10px;align-items:center;margin-top:34px;padding:12px 26px;border:1px solid rgba(229,207,163,.4);
+  border-radius:100px;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--oro-claro);
+  background:rgba(7,29,40,.35);backdrop-filter:blur(6px)}
+#hero .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--verde-claro);box-shadow:0 0 10px var(--verde-claro);
+  animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+#scrollcue{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);z-index:3;text-align:center;color:rgba(255,255,255,.75)}
+#scrollcue .mouse{width:26px;height:44px;border:1.5px solid rgba(255,255,255,.55);border-radius:14px;margin:0 auto 10px;position:relative}
+#scrollcue .mouse::after{content:'';position:absolute;top:8px;left:50%;width:3px;height:9px;margin-left:-1.5px;border-radius:3px;
+  background:var(--oro);animation:wheel 1.8s infinite}
+@keyframes wheel{0%{transform:translateY(0);opacity:1}70%{transform:translateY(14px);opacity:0}100%{opacity:0}}
+#scrollcue small{font-size:10px;letter-spacing:.42em;text-transform:uppercase}
+
+/* ============ Secciones de video pineadas ============ */
+.pin-stage{position:relative;height:100vh;overflow:hidden;background:var(--azul-noche)}
+.pin-stage .frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;perspective:1200px}
+.pin-stage video,.pin-stage .still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pin-stage .still{background-position:center;background-size:cover}
+.pin-stage .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,29,40,.55),rgba(7,29,40,.08) 40%,rgba(7,29,40,.78));pointer-events:none}
+.pin-stage .caption{position:absolute;z-index:5;left:clamp(22px,6vw,90px);bottom:clamp(60px,12vh,130px);max-width:640px}
+.pin-stage .caption .tag{font-size:11px;letter-spacing:.5em;text-transform:uppercase;color:var(--oro-claro);font-weight:700;margin-bottom:14px}
+.pin-stage .caption h2{font-weight:900;font-stretch:110%;text-transform:uppercase;font-size:clamp(34px,5.6vw,74px);line-height:.98}
+.pin-stage .caption h2 .gold{color:var(--oro)}
+.pin-stage .caption p{margin-top:16px;font-size:clamp(14px,1.4vw,17px);color:rgba(255,255,255,.82);font-weight:300;line-height:1.65}
+.pin-stage .num{position:absolute;right:clamp(20px,5vw,70px);top:50%;transform:translateY(-50%);z-index:5;
+  font-family:'Archivo';font-weight:100;font-size:clamp(70px,10vw,150px);color:transparent;
+  -webkit-text-stroke:1px rgba(229,207,163,.35);line-height:1}
+
+/* Cortina de reveal (la manta digital) */
+#curtain{position:absolute;inset:0;z-index:6;pointer-events:none}
+#curtain .fold{position:absolute;left:0;right:0;background:linear-gradient(180deg,#eef2ee,#c9d2c4 60%,#aab5a2);height:25.5%;
+  box-shadow:0 8px 30px rgba(0,0,0,.35)}
+#reveal-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:7;pointer-events:none}
+
+/* whip transition */
+.whip{position:absolute;inset:0;z-index:6;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.16) 50%,transparent 70%);
+  opacity:0;pointer-events:none;filter:blur(6px)}
+
+/* ============ Marquee ============ */
+#marquee{background:var(--verde);color:var(--crema);overflow:hidden;padding:20px 0;transform:rotate(-1.2deg);margin:-14px 0;z-index:20;position:relative}
+#marquee .track{display:flex;gap:56px;white-space:nowrap;font-family:'Archivo';font-weight:800;text-transform:uppercase;
+  font-size:clamp(16px,2vw,24px);letter-spacing:.12em;will-change:transform}
+#marquee .track span i{font-style:normal;color:var(--oro-claro);margin-right:56px}
+
+/* ============ Info / stats ============ */
+section.block{position:relative;padding:clamp(90px,14vh,160px) clamp(22px,6vw,90px)}
+.block .head{max-width:900px;margin-bottom:clamp(40px,7vh,70px)}
+.block .head .tag{font-size:11px;letter-spacing:.5em;text-transform:uppercase;color:var(--oro);font-weight:700;margin-bottom:16px}
+.block .head h2{font-weight:900;font-stretch:110%;text-transform:uppercase;font-size:clamp(32px,5vw,64px);line-height:1.02}
+.block .head p{margin-top:18px;color:rgba(255,255,255,.75);font-weight:300;font-size:clamp(14px,1.5vw,18px);line-height:1.7;max-width:640px}
+#proyecto{background:
+  radial-gradient(ellipse at 85% 0%, rgba(24,76,97,.55), transparent 55%),
+  radial-gradient(ellipse at 0% 100%, rgba(87,126,46,.25), transparent 50%),
+  var(--azul-noche)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px}
+.stat{border:1px solid rgba(229,207,163,.18);border-radius:20px;padding:30px 26px;background:rgba(24,76,97,.16);
+  backdrop-filter:blur(8px);transition:transform .5s var(--ease-lux),border-color .4s}
+.stat:hover{transform:translateY(-6px);border-color:rgba(229,207,163,.55)}
+.stat .n{font-family:'Archivo';font-weight:900;font-size:clamp(34px,3.8vw,52px);color:var(--oro);line-height:1}
+.stat .n small{font-size:.45em;font-weight:700;color:var(--oro-claro)}
+.stat .l{margin-top:10px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.78);font-weight:600}
+.amen-grid{margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.amen{display:flex;align-items:center;gap:14px;padding:18px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);font-size:14px;font-weight:500;letter-spacing:.02em;transition:.4s var(--ease-lux)}
+.amen:hover{background:rgba(87,126,46,.22);border-color:var(--verde-claro);transform:translateY(-3px)}
+.amen svg{width:22px;height:22px;stroke:var(--oro);flex:none}
+.loc{margin-top:70px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:start}
+@media(max-width:900px){.loc{grid-template-columns:1fr}}
+.loc .card{border-radius:24px;overflow:hidden;border:1px solid rgba(229,207,163,.2);position:relative;min-height:320px;
+  background:url('assets/img/hero-edificio.jpg') center/cover}
+.loc .card .tint{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(7,29,40,.92))}
+.loc .card .txt{position:absolute;left:26px;bottom:24px;right:26px}
+.loc .card .txt h3{font-size:20px;text-transform:uppercase;letter-spacing:.06em}
+.loc .card .txt p{font-size:14px;color:rgba(255,255,255,.8);margin-top:6px;font-weight:300}
+.dist{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.dist{grid-template-columns:1fr}}
+.dist .d{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:13.5px}
+.dist .d b{color:var(--oro);font-family:'Archivo';font-weight:800;white-space:nowrap;margin-left:12px}
+
+/* ============ Plantas ============ */
+#plantas{background:linear-gradient(180deg,var(--azul-noche),var(--azul-profundo))}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media(max-width:900px){.plans{grid-template-columns:1fr}}
+.plan{position:relative;border-radius:26px;padding:36px 32px;cursor:pointer;border:1.5px solid rgba(255,255,255,.12);
+  background:linear-gradient(160deg,rgba(24,76,97,.35),rgba(7,29,40,.6));transition:.45s var(--ease-lux);overflow:hidden}
+.plan::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 0%,rgba(87,126,46,.28),transparent 60%);
+  opacity:0;transition:.45s}
+.plan:hover{transform:translateY(-8px)}
+.plan.active{border-color:var(--oro);box-shadow:0 24px 70px -24px rgba(201,169,106,.35)}
+.plan.active::before{opacity:1}
+.plan .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.plan h3{font-weight:900;font-stretch:108%;text-transform:uppercase;font-size:clamp(22px,2.6vw,32px)}
+.plan h3 span{color:var(--oro)}
+.plan .m2{font-family:'Archivo';color:var(--oro-claro);font-weight:700;font-size:15px;letter-spacing:.06em}
+.plan .desde{font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:22px}
+.plan .desde b{color:#fff;font-size:15px;letter-spacing:.05em}
+.plan svg.floor{width:100%;height:auto;margin:6px 0 20px}
+.plan ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:9px 18px;font-size:13.5px;color:rgba(255,255,255,.85);font-weight:300}
+.plan ul li{display:flex;gap:9px;align-items:center}
+.plan ul li::before{content:'';width:6px;height:6px;border-radius:2px;background:var(--verde-claro);flex:none;transform:rotate(45deg)}
+.plan .pick{margin-top:26px;display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:700;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--oro);border:1px solid rgba(201,169,106,.5);
+  padding:12px 22px;border-radius:100px;transition:.35s}
+.plan.active .pick{background:var(--oro);color:var(--azul-noche)}
+
+/* ============ Cotizador ============ */
+#cotizador{background:
+  radial-gradient(ellipse at 100% 100%, rgba(87,126,46,.2), transparent 50%),
+  var(--azul-profundo)}
+.quote{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:stretch}
+@media(max-width:960px){.quote{grid-template-columns:1fr}}
+.q-form{border:1px solid rgba(255,255,255,.12);border-radius:26px;padding:34px 32px;background:rgba(7,29,40,.5);backdrop-filter:blur(10px)}
+.q-form .row{margin-bottom:26px}
+.q-form label{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:700;
+  letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:12px}
+.q-form label output{font-family:'Archivo';font-weight:800;font-size:17px;color:var(--oro);letter-spacing:.02em}
+input[type=range]{width:100%;appearance:none;-webkit-appearance:none;height:4px;border-radius:4px;outline:none;
+  background:linear-gradient(90deg,var(--verde) var(--fill,50%),rgba(255,255,255,.14) var(--fill,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:var(--oro);border:3px solid var(--azul-noche);box-shadow:0 0 0 2px var(--oro),0 4px 14px rgba(0,0,0,.5);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--oro);border:3px solid var(--azul-noche);
+  box-shadow:0 0 0 2px var(--oro);cursor:pointer}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1;min-width:70px;padding:12px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.15);
+  background:transparent;color:rgba(255,255,255,.75);font-family:'Manrope';font-weight:700;font-size:13.5px;
+  letter-spacing:.05em;cursor:pointer;transition:.3s}
+.seg button.on{background:var(--verde);border-color:var(--verde-claro);color:#fff;box-shadow:0 6px 22px -8px rgba(87,126,46,.8)}
+.q-res{border-radius:26px;padding:34px 32px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;
+  background:linear-gradient(155deg,var(--verde-oscuro) 0%,var(--verde) 130%);border:1px solid rgba(229,207,163,.35)}
+.q-res::after{content:'';position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(229,207,163,.28),transparent 70%)}
+.q-res .t{font-size:11px;letter-spacing:.44em;text-transform:uppercase;color:var(--oro-claro);font-weight:700}
+.q-res .big{font-family:'Archivo';font-weight:900;font-size:clamp(38px,4.6vw,58px);line-height:1;color:#fff}
+.q-res .big small{font-size:.38em;font-weight:600;color:var(--oro-claro);letter-spacing:.08em}
+.q-res .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;position:relative;z-index:1}
+.q-res .cell{background:rgba(7,29,40,.35);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:16px 18px}
+.q-res .cell .k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.65);font-weight:700}
+.q-res .cell .v{font-family:'Archivo';font-weight:800;font-size:clamp(17px,1.9vw,23px);margin-top:6px}
+.q-res .note{font-size:11.5px;color:rgba(255,255,255,.62);line-height:1.6;margin-top:auto;position:relative;z-index:1}
+.q-res .wa{display:inline-flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding:15px 26px;
+  border-radius:100px;background:var(--oro);color:var(--azul-noche);font-weight:800;font-size:13px;letter-spacing:.14em;
+  text-transform:uppercase;text-decoration:none;transition:.35s;position:relative;z-index:1}
+.q-res .wa:hover{transform:translateY(-2px);box-shadow:0 14px 34px -10px rgba(201,169,106,.7)}
+
+/* ============ Footer ============ */
+footer{padding:80px clamp(22px,6vw,90px) 46px;background:var(--azul-noche);border-top:1px solid rgba(229,207,163,.15)}
+footer .grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px}
+@media(max-width:820px){footer .grid{grid-template-columns:1fr}}
+footer h4{font-family:'Archivo';font-weight:800;letter-spacing:.14em;font-size:15px;text-transform:uppercase;margin-bottom:14px}
+footer h4 span{color:var(--oro)}
+footer p,footer a{font-size:13.5px;color:rgba(255,255,255,.65);line-height:1.9;text-decoration:none;font-weight:300}
+footer a:hover{color:var(--oro)}
+footer .fin{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08);display:flex;
+  justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:11.5px;color:rgba(255,255,255,.4)}
+.reveal-up{opacity:0;transform:translateY(46px)}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<nav id="nav">
+  <div class="logo"><b>BOULEVARD <span>SUR</span></b><small>CLUB RESIDENCIAL</small></div>
+  <div class="links">
+    <a href="#proyecto">Proyecto</a>
+    <a href="#plantas">Plantas</a>
+    <a href="#cotizador">Cotizador</a>
+    <a class="cta" href="#cotizador">Cotiza tu apartamento</a>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<header id="hero">
+  <div class="bg" id="heroBg"></div>
+  <div class="veil"></div>
+  <div class="content">
+    <div class="kicker">Zona 8 de Mixco · Ciudad San Cristóbal · Guatemala</div>
+    <h1 id="heroTitle">
+      <span class="line"><span>VIVE AL</span></span>
+      <span class="line"><span>RITMO <em>DEL SUR</em></span></span>
+    </h1>
+    <p class="sub">Bienvenido a <b>Boulevard Sur</b> · Tu propio Club Residencial</p>
+    <div class="badge"><span class="dot"></span> Algo grande se está descubriendo</div>
+  </div>
+  <div id="scrollcue"><div class="mouse"></div><small>Desliza para descubrirlo</small></div>
+</header>
+
+<!-- ============ ACTO 1 · LA MANTA CAE ============ -->
+<section class="pin-stage" id="act1">
+  <div class="frame">
+    <video id="v1" muted playsinline preload="auto" poster="assets/img/cover-manta.jpg">
+      <source src="assets/video/clip1-reveal.mp4" type="video/mp4">
+    </video>
+    <div class="still" id="act1End" style="background-image:url('assets/img/hero-edificio.jpg');opacity:0"></div>
+    <div class="shade"></div>
+    <div id="curtain">
+      <div class="fold" style="top:0%"></div><div class="fold" style="top:25%"></div>
+      <div class="fold" style="top:50%"></div><div class="fold" style="top:75%"></div>
+    </div>
+    <div id="reveal-flash"></div>
+  </div>
+  <div class="num">01</div>
+  <div class="caption">
+    <div class="tag">El descubrimiento</div>
+    <h2>LA ESPERA <span class="gold">TERMINÓ</span></h2>
+    <p>Sigue deslizando: la manta cae y el sur revela su nuevo ícono. Tres torres, un club residencial y 14,379&nbsp;m² de áreas verdes.</p>
+  </div>
+</section>
+
+<!-- ============ ACTO 2 · FAMILIA ============ -->
+<section class="pin-stage" id="act2">
+  <div class="frame">
+    <video id="v2" muted playsinline loop preload="auto" poster="assets/img/familia.jpg">
+      <source src="assets/video/clip2-familia.mp4" type="video/mp4">
+    </video>
+    <div class="shade"></div>
+    <div class="whip" id="whip2"></div>
+  </div>
+  <div class="num">02</div>
+  <div class="caption">
+    <div class="tag">La vida aquí</div>
+    <h2>HECHO PARA <span class="gold">TU FAMILIA</span></h2>
+    <p>Espacios que laten al ritmo de quienes los viven. Cerca de todo, lejos del ruido.</p>
+  </div>
+</section>
+
+<!-- ============ ACTO 3 · INTERIOR → PISCINA ============ -->
+<section class="pin-stage" id="act3">
+  <div class="frame">
+    <video id="v3" muted playsinline loop preload="auto" poster="assets/img/interior.jpg">
+      <source src="assets/video/clip3-interior-piscina.mp4" type="video/mp4">
+    </video>
+    <div class="still" id="act3Pool" style="background-image:url('assets/img/piscina.jpg');opacity:0"></div>
+    <div class="shade"></div>
+    <div class="whip" id="whip3"></div>
+  </div>
+  <div class="num">03</div>
+  <div class="caption" id="cap3a">
+    <div class="tag">Interiores</div>
+    <h2>ESPACIOS QUE <span class="gold">INSPIRAN</span></h2>
+    <p>Top de cuarzo, piso cerámico imitación madera y luz que entra a raudales.</p>
+  </div>
+  <div class="caption" id="cap3b" style="opacity:0">
+    <div class="tag">El club</div>
+    <h2>Y DE PRONTO… <span class="gold">LA PISCINA</span></h2>
+    <p>Piscina, gimnasio, roof top, firepit y cancha polideportiva. Un área exclusiva para relajarte y desconectarte.</p>
+  </div>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<div id="marquee"><div class="track" id="mtrack">
+  <span><i>◆</i>VIVE AL RITMO DEL SUR</span><span><i>◆</i>TU PROPIO CLUB RESIDENCIAL</span>
+  <span><i>◆</i>VIVE AL RITMO DEL SUR</span><span><i>◆</i>TU PROPIO CLUB RESIDENCIAL</span>
+  <span><i>◆</i>VIVE AL RITMO DEL SUR</span><span><i>◆</i>TU PROPIO CLUB RESIDENCIAL</span>
+</div></div>
+
+<!-- ============ PROYECTO ============ -->
+<section class="block" id="proyecto">
+  <div class="head reveal-up">
+    <div class="tag">El proyecto</div>
+    <h2>Un nuevo ícono en <br>Ciudad San Cristóbal</h2>
+    <p>Boulevard Sur es el primer club residencial de la zona: tres torres modernas rodeadas de bosque,
+      con amenidades de lujo y la mejor conectividad del sur de la ciudad. Desarrollado por Periferia Urbana.</p>
+  </div>
+  <div class="stats">
+    <div class="stat reveal-up"><div class="n" data-count="3">0</div><div class="l">Torres residenciales</div></div>
+    <div class="stat reveal-up"><div class="n" data-count="600"><small>+</small>0</div><div class="l">Apartamentos</div></div>
+    <div class="stat reveal-up"><div class="n" data-count="14379">0</div><div class="l">m² de áreas verdes</div></div>
+    <div class="stat reveal-up"><div class="n" data-count="2027">0</div><div class="l">Entrega primera fase</div></div>
+  </div>
+
+  <div class="amen-grid">
+    <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M2 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M2 19c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M7 11V6a3 3 0 0 1 6 0M13 11V6a3 3 0 0 1 6 0"/></svg>Piscina</div>
+    <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M4 9v6M8 7v10M16 7v10M20 9v6M8 12h8"/></svg>Gimnasio</div>
+    <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg>Roof Top</div>
+    <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 3c2 3 5 4 5 8a5 5 0 0 1-10 0c0-4 3-5 5-8ZM6 21h12"/></svg>Firepit</div>
+    <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M4 11h16M6 11V8h12v3M8 11v6m8-6v6M5 21h14"/></svg>Churrasqueras</div>
+    <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M4 21c1-6 4-9 8-9 3 0 5 2 6 5"/></svg>Área de mascotas</div>
+    <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="6" r="3"/><path d="M5 21c1-5 3.5-8 7-8s6 3 7 8M9 13l-2 4m8-4 2 4"/></svg>Juegos de niños</div>
+    <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 12h18M12 5v14"/></svg>Cancha polideportiva</div>
+    <div class="amen reveal-up"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>Salones de usos múltiples</div>
+  </div>
+
+  <div class="loc">
+    <div class="card reveal-up">
+      <div class="tint"></div>
+      <div class="txt">
+        <h3>Cerca de <span style="color:var(--oro)">todo</span></h3>
+        <p>6a avenida 22-80, Zona 8 de Mixco, San Cristóbal · Visita nuestro showroom</p>
+      </div>
+    </div>
+    <div class="dist">
+      <div class="d reveal-up"><span>EconoSuper</span><b>1 min</b></div>
+      <div class="d reveal-up"><span>La Torre</span><b>6 min</b></div>
+      <div class="d reveal-up"><span>Office Depot</span><b>9 min</b></div>
+      <div class="d reveal-up"><span>Mega Frater</span><b>10 min</b></div>
+      <div class="d reveal-up"><span>Cemaco</span><b>10 min</b></div>
+      <div class="d reveal-up"><span>Plaza Médica</span><b>15 min</b></div>
+      <div class="d reveal-up"><span>SanKris Mall</span><b>17 min</b></div>
+      <div class="d reveal-up"><span>Periférico</span><b>17 min</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PLANTAS ============ -->
+<section class="block" id="plantas">
+  <div class="head reveal-up">
+    <div class="tag">Plantas disponibles</div>
+    <h2>Elige tu espacio</h2>
+    <p>Dos tipologías pensadas para tu momento de vida. Toca una planta para llevarla al cotizador.</p>
+  </div>
+  <div class="plans">
+    <!-- 2 habitaciones -->
+    <article class="plan active" data-tipo="2" data-precio="550000" data-m2="52.39" id="plan2">
+      <div class="top"><h3>2 <span>Habitaciones</span></h3><div class="m2">desde 52.39 m²</div></div>
+      <div class="desde">Desde <b>Q 550,000</b> · 1 parqueo</div>
+      <svg class="floor" viewBox="0 0 640 360" fill="none">
+        <rect x="8" y="8" width="624" height="344" rx="10" stroke="#C9A96A" stroke-width="2"/>
+        <rect x="8" y="8" width="624" height="344" rx="10" fill="rgba(229,207,163,.03)"/>
+        <!-- sala comedor -->
+        <rect x="26" y="26" width="270" height="200" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="161" y="120" fill="#E5CFA3" font-size="17" font-family="Manrope" text-anchor="middle">Sala · Comedor</text>
+        <!-- cocina -->
+        <rect x="26" y="238" width="160" height="96" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="106" y="290" fill="rgba(255,255,255,.85)" font-size="14" font-family="Manrope" text-anchor="middle">Cocina</text>
+        <!-- lavandería -->
+        <rect x="198" y="238" width="98" height="96" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="247" y="290" fill="rgba(255,255,255,.85)" font-size="12.5" font-family="Manrope" text-anchor="middle">Lavandería</text>
+        <!-- hab principal -->
+        <rect x="316" y="26" width="176" height="160" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="404" y="110" fill="rgba(255,255,255,.9)" font-size="14" font-family="Manrope" text-anchor="middle">Habitación 1</text>
+        <!-- hab 2 -->
+        <rect x="316" y="200" width="176" height="134" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="404" y="272" fill="rgba(255,255,255,.9)" font-size="14" font-family="Manrope" text-anchor="middle">Habitación 2</text>
+        <!-- baños -->
+        <rect x="512" y="26" width="102" height="92" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="563" y="76" fill="rgba(255,255,255,.85)" font-size="12.5" font-family="Manrope" text-anchor="middle">Baño 1</text>
+        <rect x="512" y="132" width="102" height="92" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="563" y="182" fill="rgba(255,255,255,.85)" font-size="12.5" font-family="Manrope" text-anchor="middle">Baño 2</text>
+        <rect x="512" y="238" width="102" height="96" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="563" y="290" fill="rgba(255,255,255,.85)" font-size="12.5" font-family="Manrope" text-anchor="middle">Clósets</text>
+      </svg>
+      <ul>
+        <li>Sala · Comedor</li><li>Cocina</li>
+        <li>2 baños completos</li><li>Lavandería</li>
+        <li>Clósets</li><li>1 parqueo</li>
+      </ul>
+      <span class="pick">Cotizar esta planta →</span>
+    </article>
+    <!-- 3 habitaciones -->
+    <article class="plan" data-tipo="3" data-precio="650000" data-m2="64.69" id="plan3">
+      <div class="top"><h3>3 <span>Habitaciones</span></h3><div class="m2">desde 64.69 m²</div></div>
+      <div class="desde">Desde <b>Q 650,000</b> · 2 parqueos</div>
+      <svg class="floor" viewBox="0 0 640 360" fill="none">
+        <rect x="8" y="8" width="624" height="344" rx="10" stroke="#C9A96A" stroke-width="2"/>
+        <rect x="8" y="8" width="624" height="344" rx="10" fill="rgba(229,207,163,.03)"/>
+        <rect x="26" y="26" width="238" height="188" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="145" y="115" fill="#E5CFA3" font-size="16" font-family="Manrope" text-anchor="middle">Sala · Comedor</text>
+        <rect x="26" y="228" width="130" height="106" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="91" y="284" fill="rgba(255,255,255,.85)" font-size="13.5" font-family="Manrope" text-anchor="middle">Cocina</text>
+        <rect x="168" y="228" width="96" height="106" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="216" y="284" fill="rgba(255,255,255,.85)" font-size="12" font-family="Manrope" text-anchor="middle">Lavandería</text>
+        <rect x="284" y="26" width="164" height="150" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="366" y="105" fill="rgba(255,255,255,.9)" font-size="13.5" font-family="Manrope" text-anchor="middle">Habitación 1</text>
+        <rect x="284" y="190" width="164" height="144" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="366" y="266" fill="rgba(255,255,255,.9)" font-size="13.5" font-family="Manrope" text-anchor="middle">Habitación 2</text>
+        <rect x="468" y="190" width="146" height="144" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="541" y="266" fill="rgba(255,255,255,.9)" font-size="13.5" font-family="Manrope" text-anchor="middle">Habitación 3</text>
+        <rect x="468" y="26" width="146" height="70" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="541" y="66" fill="rgba(255,255,255,.85)" font-size="12" font-family="Manrope" text-anchor="middle">Baño 1</text>
+        <rect x="468" y="106" width="146" height="70" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <text x="541" y="146" fill="rgba(255,255,255,.85)" font-size="12" font-family="Manrope" text-anchor="middle">Baño 2 · Clósets</text>
+      </svg>
+      <ul>
+        <li>Sala · Comedor</li><li>Cocina</li>
+        <li>2 baños completos</li><li>Lavandería</li>
+        <li>Clósets</li><li>2 parqueos</li>
+      </ul>
+      <span class="pick">Cotizar esta planta →</span>
+    </article>
+  </div>
+</section>
+
+<!-- ============ COTIZADOR ============ -->
+<section class="block" id="cotizador">
+  <div class="head reveal-up">
+    <div class="tag">Cotizador</div>
+    <h2>Tu cuota, a tu ritmo</h2>
+    <p>Mueve los controles y descubre lo fácil que es vivir en Boulevard Sur. Enganche del 10% financiado en cuotas durante la construcción y el saldo con crédito bancario.</p>
+  </div>
+  <div class="quote">
+    <div class="q-form reveal-up">
+      <div class="row">
+        <label>Tipología <output id="oTipo">2 Habitaciones · 52.39 m²</output></label>
+        <div class="seg" id="segTipo">
+          <button class="on" data-tipo="2">2 Habitaciones</button>
+          <button data-tipo="3">3 Habitaciones</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>Precio del apartamento <output id="oPrecio">Q 550,000</output></label>
+        <input type="range" id="rPrecio" min="550000" max="750000" step="5000" value="550000">
+      </div>
+      <div class="row">
+        <label>Enganche (10%) financiado a <output id="oMeses">24 meses</output></label>
+        <div class="seg" id="segMeses">
+          <button data-m="12">12</button>
+          <button class="on" data-m="24">24</button>
+          <button data-m="36">36</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>Crédito bancario a <output id="oAnios">20 años</output></label>
+        <div class="seg" id="segAnios">
+          <button data-a="15">15 años</button>
+          <button class="on" data-a="20">20 años</button>
+          <button data-a="25">25 años</button>
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:0">
+        <label>Tasa de interés estimada <output id="oTasa">8.0%</output></label>
+        <input type="range" id="rTasa" min="7" max="11" step="0.25" value="8">
+      </div>
+    </div>
+    <div class="q-res reveal-up">
+      <div class="t">Cuota estimada del crédito</div>
+      <div class="big" id="rCuota">Q 4,138<small> /mes</small></div>
+      <div class="grid">
+        <div class="cell"><div class="k">Reserva</div><div class="v">Q 5,000</div></div>
+        <div class="cell"><div class="k">Enganche 10%</div><div class="v" id="rEng">Q 55,000</div></div>
+        <div class="cell"><div class="k">Cuota en construcción</div><div class="v" id="rCuotaEng">Q 2,083<span style="font-size:.55em;color:var(--oro-claro)"> /mes</span></div></div>
+        <div class="cell"><div class="k">Monto a financiar</div><div class="v" id="rFin">Q 495,000</div></div>
+      </div>
+      <p class="note">* Cálculo ilustrativo con tasa referencial del sistema bancario guatemalteco. La reserva se abona al enganche.
+        No constituye oferta formal; condiciones sujetas a aprobación bancaria.</p>
+      <a class="wa" id="waLink" href="https://boulevardsur.gt" target="_blank" rel="noopener">Quiero esta cuota →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="grid">
+    <div>
+      <h4>BOULEVARD <span>SUR</span> · CLUB RESIDENCIAL</h4>
+      <p>El primer club residencial del sur de la ciudad. Tres torres, 600+ apartamentos de 2 y 3 habitaciones
+        y 14,379 m² de áreas verdes. Desarrollado por Periferia Urbana.</p>
+    </div>
+    <div>
+      <h4>Visítanos</h4>
+      <p>6a avenida 22-80, Zona 8 de Mixco<br>Ciudad San Cristóbal, Guatemala<br>Showroom abierto todos los días</p>
+    </div>
+    <div>
+      <h4>Contacto</h4>
+      <p><a href="https://boulevardsur.gt" target="_blank" rel="noopener">boulevardsur.gt</a><br>
+      <a href="https://www.instagram.com/boulevardsurgt" target="_blank" rel="noopener">@boulevardsurgt</a><br>
+      <a href="https://www.facebook.com/boulevardsurgt" target="_blank" rel="noopener">Facebook · Boulevard Sur</a></p>
+    </div>
+  </div>
+  <div class="fin">
+    <span>© 2026 Boulevard Sur · Club Residencial. Todos los derechos reservados.</span>
+    <span>VIVE AL RITMO DEL SUR</span>
+  </div>
+</footer>
+
+<script src="assets/js/gsap.min.js"></script>
+<script src="assets/js/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ---------- utilidades ---------- */
+const Q = n => 'Q ' + Math.round(n).toLocaleString('es-GT');
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+const hasVideo = v => v.readyState >= 2 && v.videoWidth > 0;
+
+/* barra de progreso + nav */
+gsap.to('#progress',{width:'100%',ease:'none',scrollTrigger:{start:0,end:'max',scrub:.3}});
+ScrollTrigger.create({start:60,onUpdate:s=>document.getElementById('nav').classList.toggle('solid',s.scroll()>60)});
+
+/* ---------- HERO ---------- */
+gsap.set('#heroTitle .line span',{yPercent:120});
+gsap.timeline({delay:.15})
+  .to('#heroTitle .line span',{yPercent:0,duration:1.25,ease:'power4.out',stagger:.14})
+  .from('#hero .kicker',{opacity:0,y:-14,duration:.8},'-=.9')
+  .from('#hero .sub',{opacity:0,y:18,duration:.8},'-=.6')
+  .from('#hero .badge',{opacity:0,scale:.85,duration:.7,ease:'back.out(2)'},'-=.4')
+  .from('#scrollcue',{opacity:0,duration:.8},'-=.3');
+gsap.to('#heroBg',{scale:1.16,ease:'none',scrollTrigger:{trigger:'#hero',start:'top top',end:'bottom top',scrub:true}});
+gsap.to('#hero .content',{yPercent:-24,opacity:.25,ease:'none',scrollTrigger:{trigger:'#hero',start:'top top',end:'bottom top',scrub:true}});
+
+/* ---------- ACTO 1 · scrub del video + cortina ---------- */
+const v1 = document.getElementById('v1');
+const act1 = gsap.timeline({
+  scrollTrigger:{trigger:'#act1',start:'top top',end:'+=260%',pin:true,scrub:.6,anticipatePin:1}
+});
+/* la manta digital se levanta pliegue a pliegue */
+act1.to('#curtain .fold',{yPercent:-420,rotation:i=>(i%2? 3:-3),stagger:.12,ease:'power2.inOut',duration:1.6},0)
+    .fromTo('#act1 .caption',{opacity:0,y:60},{opacity:1,y:0,duration:.5},0.1)
+    .to('#reveal-flash',{opacity:.85,duration:.12},1.78)
+    .to('#reveal-flash',{opacity:0,duration:.5},1.92)
+    .to('#act1End',{opacity:1,duration:.8},1.85)
+    .to('#act1 .frame',{scale:1.04,duration:2,ease:'none'},0);
+/* scrub del clip de video con el scroll */
+function bindScrub(video, trigger, endPct){
+  const st = ScrollTrigger.create({
+    trigger, start:'top top', end:endPct, scrub:true,
+    onUpdate(self){
+      if(hasVideo(video) && video.duration){
+        video.currentTime = clamp(self.progress,0,0.999) * video.duration;
+      }
+    }
+  });
+  return st;
+}
+v1.addEventListener('loadedmetadata',()=>{ v1.pause(); });
+bindScrub(v1,'#act1','+=260%');
+
+/* ---------- ACTO 2 · familia, ritmo fuerte ---------- */
+const v2 = document.getElementById('v2');
+ScrollTrigger.create({
+  trigger:'#act2',start:'top 60%',onEnter:()=>{v2.play().catch(()=>{})},onLeave:()=>v2.pause(),
+  onEnterBack:()=>{v2.play().catch(()=>{})},onLeaveBack:()=>v2.pause()
+});
+const act2 = gsap.timeline({
+  scrollTrigger:{trigger:'#act2',start:'top top',end:'+=180%',pin:true,scrub:.5,anticipatePin:1}
+});
+act2.fromTo('#act2 .frame',{scale:1.18,rotateZ:2.2,filter:'brightness(.4)'},
+            {scale:1,rotateZ:0,filter:'brightness(1)',duration:.9,ease:'power3.out'},0)
+    .fromTo('#act2 .caption',{opacity:0,x:-90,skewX:8},{opacity:1,x:0,skewX:0,duration:.6,ease:'power4.out'},.25)
+    .to('#whip2',{opacity:1,xPercent:120,duration:.25,ease:'power4.in'},1.4)
+    .to('#act2 .frame',{scale:1.07,rotateZ:-1.4,duration:.5},1.35);
+
+/* ---------- ACTO 3 · interior → golpe → piscina ---------- */
+const v3 = document.getElementById('v3');
+ScrollTrigger.create({
+  trigger:'#act3',start:'top 60%',onEnter:()=>{v3.play().catch(()=>{})},onLeave:()=>v3.pause(),
+  onEnterBack:()=>{v3.play().catch(()=>{})},onLeaveBack:()=>v3.pause()
+});
+const act3 = gsap.timeline({
+  scrollTrigger:{trigger:'#act3',start:'top top',end:'+=220%',pin:true,scrub:.55,anticipatePin:1}
+});
+act3.fromTo('#act3 .frame',{scale:1.12,filter:'brightness(.45)'},{scale:1,filter:'brightness(1)',duration:.7},0)
+    .fromTo('#cap3a',{opacity:0,y:70},{opacity:1,y:0,duration:.5},.15)
+    /* movimiento brusco: whip + sacudida hacia la piscina */
+    .to('#cap3a',{opacity:0,x:-120,skewX:-10,duration:.3},1.15)
+    .to('#whip3',{opacity:1,xPercent:140,duration:.22,ease:'power4.in'},1.18)
+    .fromTo('#act3 .frame',{x:0},{keyframes:[{x:-34,duration:.06},{x:26,duration:.06},{x:-14,duration:.06},{x:0,duration:.08}]},1.2)
+    .to('#act3Pool',{opacity:1,duration:.45},1.32)
+    .fromTo('#cap3b',{opacity:0,x:120,skewX:10},{opacity:1,x:0,skewX:0,duration:.55,ease:'power4.out'},1.5)
+    .to('#act3 .frame',{scale:1.05,duration:.8,ease:'none'},1.6);
+
+/* ---------- Marquee ---------- */
+gsap.to('#mtrack',{xPercent:-33.33,ease:'none',repeat:-1,duration:16});
+
+/* ---------- Reveals genéricos ---------- */
+gsap.utils.toArray('.reveal-up').forEach(el=>{
+  gsap.to(el,{opacity:1,y:0,duration:1.1,ease:'power3.out',
+    scrollTrigger:{trigger:el,start:'top 88%'}});
+});
+
+/* ---------- contadores ---------- */
+gsap.utils.toArray('.stat .n').forEach(el=>{
+  const target = +el.dataset.count;
+  ScrollTrigger.create({trigger:el,start:'top 90%',once:true,onEnter:()=>{
+    const o = {v:0};
+    gsap.to(o,{v:target,duration:2,ease:'power3.out',onUpdate:()=>{
+      const keep = el.querySelector('small');
+      el.textContent = Math.round(o.v).toLocaleString('es-GT');
+      if(keep) el.prepend(keep);
+    }});
+  }});
+});
+
+/* ---------- Plantas + Cotizador ---------- */
+const state = {tipo:'2', precio:550000, meses:24, anios:20, tasa:8, m2:'52.39'};
+const PLAN = {
+  '2':{min:550000, base:550000, m2:'52.39', parqueos:1},
+  '3':{min:650000, base:650000, m2:'64.69', parqueos:2}
+};
+const RESERVA = 5000;
+
+function fmtFill(r){const p=(r.value-r.min)/(r.max-r.min)*100;r.style.setProperty('--fill',p+'%')}
+document.querySelectorAll('input[type=range]').forEach(r=>{fmtFill(r);r.addEventListener('input',()=>fmtFill(r))});
+
+function selectPlan(t, scroll){
+  state.tipo=t; state.m2=PLAN[t].m2;
+  document.querySelectorAll('.plan').forEach(p=>p.classList.toggle('active',p.dataset.tipo===t));
+  document.querySelectorAll('#segTipo button').forEach(b=>b.classList.toggle('on',b.dataset.tipo===t));
+  const r=document.getElementById('rPrecio');
+  r.min=PLAN[t].min; r.value=Math.max(+r.value, PLAN[t].base); fmtFill(r);
+  state.precio=+r.value;
+  document.getElementById('oTipo').textContent=`${t} Habitaciones · ${PLAN[t].m2} m²`;
+  compute();
+  if(scroll) document.getElementById('cotizador').scrollIntoView({behavior:'smooth'});
+}
+document.querySelectorAll('.plan').forEach(p=>p.addEventListener('click',()=>selectPlan(p.dataset.tipo,true)));
+document.getElementById('segTipo').addEventListener('click',e=>{
+  if(e.target.dataset.tipo) selectPlan(e.target.dataset.tipo,false);
+});
+document.getElementById('segMeses').addEventListener('click',e=>{
+  if(!e.target.dataset.m) return;
+  state.meses=+e.target.dataset.m;
+  document.querySelectorAll('#segMeses button').forEach(b=>b.classList.toggle('on',b===e.target));
+  document.getElementById('oMeses').textContent=state.meses+' meses'; compute();
+});
+document.getElementById('segAnios').addEventListener('click',e=>{
+  if(!e.target.dataset.a) return;
+  state.anios=+e.target.dataset.a;
+  document.querySelectorAll('#segAnios button').forEach(b=>b.classList.toggle('on',b===e.target));
+  document.getElementById('oAnios').textContent=state.anios+' años'; compute();
+});
+document.getElementById('rPrecio').addEventListener('input',e=>{state.precio=+e.target.value;compute()});
+document.getElementById('rTasa').addEventListener('input',e=>{state.tasa=+e.target.value;compute()});
+
+function compute(){
+  const precio=state.precio;
+  const eng=precio*.10;
+  const cuotaEng=Math.max(0,(eng-RESERVA))/state.meses;
+  const fin=precio-eng;
+  const i=state.tasa/100/12, n=state.anios*12;
+  const cuota= fin * (i*Math.pow(1+i,n)) / (Math.pow(1+i,n)-1);
+  document.getElementById('oPrecio').textContent=Q(precio);
+  document.getElementById('oTasa').textContent=state.tasa.toFixed(2).replace(/\.?0+$/,'')+'%';
+  document.getElementById('rEng').textContent=Q(eng);
+  document.getElementById('rCuotaEng').innerHTML=Q(cuotaEng)+'<span style="font-size:.55em;color:var(--oro-claro)"> /mes</span>';
+  document.getElementById('rFin').textContent=Q(fin);
+  document.getElementById('rCuota').innerHTML=Q(cuota)+'<small> /mes</small>';
+  const msg=encodeURIComponent(`Hola, me interesa un apartamento de ${state.tipo} habitaciones (${state.m2} m²) en Boulevard Sur. Precio ${Q(precio)}, cuota estimada ${Q(cuota)}/mes a ${state.anios} años. ¿Podemos agendar una visita?`);
+  document.getElementById('waLink').href=`https://wa.me/50230000000?text=${msg}`;
+}
+compute();
+
+/* ---------- fallback: si un video no carga, usamos su póster como fondo ---------- */
+document.querySelectorAll('video').forEach(v=>{
+  const fallback=()=>{
+    if(v.dataset.fb) return; v.dataset.fb='1';
+    const d=document.createElement('div');
+    d.className='still';
+    d.style.backgroundImage=`url('${v.poster}')`;
+    v.parentElement.insertBefore(d,v.nextSibling);
+    v.style.display='none';
+  };
+  v.addEventListener('error',fallback,true);
+  const src=v.querySelector('source');
+  if(src) src.addEventListener('error',fallback);
+});
+</script>
+</body>
+</html>
