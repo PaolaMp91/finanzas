@@ -49,7 +49,7 @@ jobs:
           fi
           # Comprimir imágenes a JPG de alta calidad para la web
           for f in manta hero familia interior piscina; do
-            convert "tmp_dl/$f.png" -strip -resize '2048x2048>' -quality 84 "tmp_dl/$f.jpg"
+            ffmpeg -y -loglevel error -i "tmp_dl/$f.png" -vf "scale='min(2048,iw)':-2" -q:v 3 "tmp_dl/$f.jpg"
           done
           mv tmp_dl/manta.jpg    boulevard-sur/assets/img/cover-manta.jpg
           mv tmp_dl/hero.jpg     boulevard-sur/assets/img/hero-edificio.jpg
