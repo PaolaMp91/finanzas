@@ -35,28 +35,18 @@ jobs:
           VID_CLIP3: ${{ inputs.clip3_url || '' }}
         run: |
           set -euo pipefail
-          mkdir -p boulevard-sur/assets/img boulevard-sur/assets/video tmp_dl
+          mkdir -p boulevard-sur/assets/img boulevard-sur/assets/video
           dl () { curl -fSL --retry 3 --retry-delay 3 -o "$1" "$2"; }
-          dl tmp_dl/manta.png    "$IMG_MANTA"
-          dl tmp_dl/hero.png     "$IMG_HERO"
-          dl tmp_dl/familia.png  "$IMG_FAMILIA"
-          dl tmp_dl/interior.png "$IMG_INTERIOR"
-          dl tmp_dl/piscina.png  "$IMG_PISCINA"
+          dl boulevard-sur/assets/img/cover-manta.png   "$IMG_MANTA"
+          dl boulevard-sur/assets/img/hero-edificio.png "$IMG_HERO"
+          dl boulevard-sur/assets/img/familia.png       "$IMG_FAMILIA"
+          dl boulevard-sur/assets/img/interior.png      "$IMG_INTERIOR"
+          dl boulevard-sur/assets/img/piscina.png       "$IMG_PISCINA"
           dl boulevard-sur/assets/video/clip1-reveal.mp4  "$VID_CLIP1"
           dl boulevard-sur/assets/video/clip2-familia.mp4 "$VID_CLIP2"
           if [ -n "$VID_CLIP3" ]; then
             dl boulevard-sur/assets/video/clip3-interior-piscina.mp4 "$VID_CLIP3"
           fi
-          # Comprimir imágenes a JPG de alta calidad para la web
-          for f in manta hero familia interior piscina; do
-            ffmpeg -y -loglevel error -i "tmp_dl/$f.png" -vf "scale='min(2048,iw)':-2" -q:v 3 "tmp_dl/$f.jpg"
-          done
-          mv tmp_dl/manta.jpg    boulevard-sur/assets/img/cover-manta.jpg
-          mv tmp_dl/hero.jpg     boulevard-sur/assets/img/hero-edificio.jpg
-          mv tmp_dl/familia.jpg  boulevard-sur/assets/img/familia.jpg
-          mv tmp_dl/interior.jpg boulevard-sur/assets/img/interior.jpg
-          mv tmp_dl/piscina.jpg  boulevard-sur/assets/img/piscina.jpg
-          rm -rf tmp_dl
           ls -la boulevard-sur/assets/img boulevard-sur/assets/video
 
       - name: Commit and push assets
