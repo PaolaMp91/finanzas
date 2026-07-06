@@ -1,0 +1,59 @@
+name: Fetch Boulevard Sur media assets
+
+on:
+  push:
+    branches:
+      - claude/boulevard-sur-3d-scroll-uk662r
+  workflow_dispatch:
+    inputs:
+      clip3_url:
+        description: "URL opcional del clip 3 (interior->piscina) para descargar"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    if: ${{ !contains(github.event.head_commit.message, 'media assets') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/boulevard-sur-3d-scroll-uk662r
+
+      - name: Download images and videos from Runway CDN
+        env:
+          IMG_MANTA: 'https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/ebf7c3c0-5577-45cf-854b-e01e4957beb8/Cinematic_architectural_photograph_at_dusk__three_modern_mid.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYmIyMzM0YTljMGViY2UyZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4MzQyNTgzM30.FMI78UulCvAwv__QjRSnc5bkpXhWaWOyKUNHsXM_ZT4'
+          IMG_HERO: 'https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/f94e35c3-afe2-4486-bbcc-37181515bb73/Cinematic_architectural_photograph_at_golden_hour__three_ele.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYWRmNWJiNDViZWU4NjNlYiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4MzQzOTQyOX0.H1dyBEB3QuU4rQd0n9nJBgvEwM6pkIQQCnVjy91W1z4'
+          IMG_FAMILIA: 'https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/f157d862-2d57-4f39-8a5c-a9389f479f05/Cinematic_close_up_portrait__shallow_depth_of_field__a_happy.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMzY4Y2UxOTE4Y2NiNTlkYSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4MzQzNjA0OX0.aB247XQLq7pz3Yk9WUEknDx_2c0zHIbIE28Q23KPs84'
+          IMG_INTERIOR: 'https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/4afeae27-719c-4a51-b171-7ea8ea8e6214/Cinematic_interior_photograph_of_a_modern_luxury_apartment__.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMmU0YmRjYWI3NTZhZjQxZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4MzQ1NjQyN30.yAl_xOEeIzFjqivmA5bKRSHy6Gtia6brGZmlomq24CM'
+          IMG_PISCINA: 'https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/62328583-1f8b-468f-9773-874cc47533f4/Cinematic_photograph_at_dusk_of_a_luxurious_residential_club.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOWRkZDI5ZjFmMjk5ZWEwMSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4MzM5MzkwNX0.5fgChGVcPHB5wC5HsrAsY-KSw1y77cmDfNVFq4Fd9Jo'
+          VID_CLIP1: 'https://dnznrvs05pmza.cloudfront.net/ec5e5401-f908-46e4-88e1-6247bbc5453d.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZTk1YzYyZmE1YTZhM2YxYyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4MzM5ODc3OH0.10PKcFNXgBmlGAE920yXdEXrc9TaO0jlPGnpsLi5bwQ'
+          VID_CLIP2: 'https://dnznrvs05pmza.cloudfront.net/323a9c86-b7ff-40ab-99cd-7b9352ed63e3.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMzRlNGFiN2M4Njc5NzVhZiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4MzQ1NTc0MH0.AQ09ltIS69cYYNlfCIVeGIihJ1w9H4O49WyexPKwRtI'
+          VID_CLIP3: ${{ inputs.clip3_url || '' }}
+        run: |
+          set -euo pipefail
+          mkdir -p boulevard-sur/assets/img boulevard-sur/assets/video
+          dl () { curl -fSL --retry 3 --retry-delay 3 -o "$1" "$2"; }
+          dl boulevard-sur/assets/img/cover-manta.png   "$IMG_MANTA"
+          dl boulevard-sur/assets/img/hero-edificio.png "$IMG_HERO"
+          dl boulevard-sur/assets/img/familia.png       "$IMG_FAMILIA"
+          dl boulevard-sur/assets/img/interior.png      "$IMG_INTERIOR"
+          dl boulevard-sur/assets/img/piscina.png       "$IMG_PISCINA"
+          dl boulevard-sur/assets/video/clip1-reveal.mp4  "$VID_CLIP1"
+          dl boulevard-sur/assets/video/clip2-familia.mp4 "$VID_CLIP2"
+          if [ -n "$VID_CLIP3" ]; then
+            dl boulevard-sur/assets/video/clip3-interior-piscina.mp4 "$VID_CLIP3"
+          fi
+          ls -la boulevard-sur/assets/img boulevard-sur/assets/video
+
+      - name: Commit and push assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add boulevard-sur/assets
+          git diff --cached --quiet && echo "Nothing to commit" && exit 0
+          git commit -m "Add generated media assets for Boulevard Sur cinematic page"
+          git push origin claude/boulevard-sur-3d-scroll-uk662r
