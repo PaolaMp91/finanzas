@@ -158,10 +158,14 @@
             </div>
             <div>
               <label for="cfgTenant">Tenant ID (directorio)</label>
-              <input id="cfgTenant" placeholder="grupop.us o el GUID del directorio" />
+              <input id="cfgTenant" placeholder="a8cb009b-98b1-4b87-ab9f-ecee5d1ebd14" />
             </div>
             <div>
-              <label for="cfgPlanName">Nombre del plan de Planner</label>
+              <label for="cfgPlanId">Plan ID (del enlace de Planner)</label>
+              <input id="cfgPlanId" placeholder="9Ta9UufHO0mDGpATZEM5aGUAGnOz" />
+            </div>
+            <div>
+              <label for="cfgPlanName">Nombre del plan (respaldo si el ID falla)</label>
               <input id="cfgPlanName" value="Periferia Urbana" />
             </div>
             <div style="display:flex;align-items:flex-end">
@@ -177,13 +181,13 @@
               <li>En <b>Permisos de API</b> → <b>Agregar permiso</b> → <b>Microsoft Graph</b> → <b>Permisos delegados</b>: agregar <code>User.Read</code>, <code>Tasks.Read</code> y <code>User.ReadBasic.All</code>. Pedir a un administrador el <b>consentimiento de administrador</b>.</li>
               <li>Copiar el <b>Id. de aplicación (cliente)</b> y el <b>Id. de directorio (inquilino)</b> de la página <b>Información general</b> y pegarlos aquí. Quedan guardados en este navegador.</li>
             </ol>
-            <p style="color:var(--muted);font-size:12px">También puedes pasar la configuración en la URL: <code>planner-kpi.html?clientId=…&amp;tenant=…&amp;plan=Periferia%20Urbana</code> — útil para la pestaña de Teams, así nadie tiene que configurar nada.</p>
+            <p style="color:var(--muted);font-size:12px">El tenant de Grupo P y el plan Periferia Urbana ya vienen preconfigurados. Solo falta el Client ID, que también puede ir en la URL: <code>planner-kpi.html?clientId=…</code> — útil para la pestaña de Teams, así nadie tiene que configurar nada.</p>
           </details>
           <details class="help">
             <summary>¿Cómo lo dejo publicado en el canal “General Administrativo” y que se actualice solo?</summary>
             <ol>
               <li><b>Publicar la página:</b> en GitHub → repositorio <code>finanzas</code> → <b>Settings → Pages</b> → Source: <code>main</code>. La página quedará en <code>https://paolamp91.github.io/finanzas/planner-kpi.html</code>.</li>
-              <li><b>Agregarla a Teams:</b> abrir el equipo → canal <b>General Administrativo</b> → botón <b>+</b> (Agregar pestaña) → <b>Sitio web</b> → nombre <code>KPI Planner</code> y pegar la URL de arriba (con <code>?clientId=…&amp;tenant=…</code> al final).</li>
+              <li><b>Agregarla a Teams:</b> abrir el equipo → canal <b>General Administrativo</b> → botón <b>+</b> (Agregar pestaña) → <b>Sitio web</b> → nombre <code>KPI Planner</code> y pegar la URL de arriba (con <code>?clientId=…</code> al final).</li>
               <li><b>Actualización:</b> no hay que hacer nada. Cada vez que alguien abre la pestaña, la página consulta Planner en vivo; además se refresca sola cada 5 minutos mientras está abierta. Cada persona inicia sesión con su propia cuenta de Microsoft la primera vez.</li>
             </ol>
           </details>
@@ -297,11 +301,14 @@
 "use strict";
 /* ================= configuración ================= */
 const qs = new URLSearchParams(location.search);
+const DEFAULT_TENANT = "a8cb009b-98b1-4b87-ab9f-ecee5d1ebd14"; // Grupo P
+const DEFAULT_PLAN_ID = "9Ta9UufHO0mDGpATZEM5aGUAGnOz";           // Plan Periferia Urbana
 const store = {
   get clientId(){ return qs.get("clientId") || localStorage.getItem("pu_clientId") || ""; },
-  get tenant(){ return qs.get("tenant") || localStorage.getItem("pu_tenant") || "common"; },
+  get tenant(){ return qs.get("tenant") || localStorage.getItem("pu_tenant") || DEFAULT_TENANT; },
+  get planId(){ return qs.get("planId") || localStorage.getItem("pu_planId") || DEFAULT_PLAN_ID; },
   get planName(){ return qs.get("plan") || localStorage.getItem("pu_planName") || "Periferia Urbana"; },
-  save(c,t,p){ localStorage.setItem("pu_clientId",c); localStorage.setItem("pu_tenant",t); localStorage.setItem("pu_planName",p); }
+  save(c,t,pid,p){ localStorage.setItem("pu_clientId",c); localStorage.setItem("pu_tenant",t); localStorage.setItem("pu_planId",pid); localStorage.setItem("pu_planName",p); }
 };
 const SCOPES = ["User.Read","Tasks.Read","User.ReadBasic.All"];
 const GRAPH = "https://graph.microsoft.com/v1.0";
@@ -412,13 +419,20 @@ async function loadFromPlanner(interactive){
     if (token === null) return; // redirigiendo a login
     setConn("on","Conectado como "+(account?.name || account?.username || "usuario"));
 
-    // 1) localizar el plan
-    const plans = await gAll(token, "/me/planner/plans");
-    const wanted = store.planName.toLowerCase();
-    plan = plans.find(p=>(p.title||"").toLowerCase().includes(wanted)) || null;
+    // 1) localizar el plan: por ID directo y, si no, por nombre
+    plan = null;
+    if (store.planId){
+      try{ plan = await g(token, "/planner/plans/"+store.planId); }
+      catch(e){ /* ID inválido o sin acceso: probamos por nombre */ }
+    }
     if (!plan){
-      const names = plans.map(p=>p.title).join(" · ") || "ninguno";
-      throw new Error("No encontré un plan que contenga \""+store.planName+"\". Planes visibles con tu cuenta: "+names+". Ajusta el nombre en ⚙ Configuración.");
+      const plans = await gAll(token, "/me/planner/plans");
+      const wanted = store.planName.toLowerCase();
+      plan = plans.find(p=>(p.title||"").toLowerCase().includes(wanted)) || null;
+      if (!plan){
+        const names = plans.map(p=>p.title).join(" · ") || "ninguno";
+        throw new Error("No pude abrir el plan (ID: "+(store.planId||"—")+") ni encontrar uno que contenga \""+store.planName+"\". Planes visibles con tu cuenta: "+names+". Revisa ⚙ Configuración y que tu cuenta sea miembro del plan.");
+      }
     }
     $("planBadge").textContent = "Plan: "+plan.title;
 
@@ -630,7 +644,7 @@ function armAutoRefresh(){
 
 $("btnCfg").onclick = ()=> $("cfgPanel").classList.toggle("open");
 $("btnSaveCfg").onclick = ()=>{
-  store.save($("cfgClient").value.trim(), $("cfgTenant").value.trim()||"common", $("cfgPlanName").value.trim()||"Periferia Urbana");
+  store.save($("cfgClient").value.trim(), $("cfgTenant").value.trim()||DEFAULT_TENANT, $("cfgPlanId").value.trim(), $("cfgPlanName").value.trim()||"Periferia Urbana");
   msalApp = null; hideError();
   $("cfgPanel").classList.remove("open");
   loadFromPlanner(true);
@@ -642,7 +656,8 @@ $("btnDemo").onclick = loadDemo;
 
 /* ================= arranque ================= */
 $("cfgClient").value = store.clientId;
-$("cfgTenant").value = store.tenant==="common" ? "" : store.tenant;
+$("cfgTenant").value = store.tenant;
+$("cfgPlanId").value = store.planId;
 $("cfgPlanName").value = store.planName;
 
 (async ()=>{

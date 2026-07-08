@@ -105,8 +105,12 @@ La página queda en `https://paolamp91.github.io/finanzas/planner-kpi.html`.
 2. Nombre: `KPI Planner` · URL (con la configuración incluida, para que nadie tenga que configurar nada):
 
    ```
-   https://paolamp91.github.io/finanzas/planner-kpi.html?clientId=<CLIENT_ID>&tenant=<TENANT_ID>&plan=Periferia%20Urbana
+   https://paolamp91.github.io/finanzas/planner-kpi.html?clientId=<CLIENT_ID>
    ```
+
+   El tenant de Grupo P (`a8cb009b-98b1-4b87-ab9f-ecee5d1ebd14`) y el plan Periferia Urbana
+   (ID `9Ta9UufHO0mDGpATZEM5aGUAGnOz`, tomado del enlace de Planner en Teams) ya vienen
+   preconfigurados en la página; solo hace falta el Client ID del registro de Azure.
 
 3. Cada persona inicia sesión con su cuenta de Microsoft la primera vez; después entra directo.
 
