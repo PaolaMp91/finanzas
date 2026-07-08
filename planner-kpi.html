@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KPI Planner · Periferia Urbana</title>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.1/lib/msal-browser.min.js"></script>
+<style>
+  :root{
+    --navy:#0f2c4d; --navy2:#16406e; --blue:#1f73c4; --sky:#e8f0fa;
+    --gold:#c9a227; --teal:#0f9d8c;
+    --bg:#eef1f6; --card:#ffffff; --line:#e2e8f0;
+    --txt:#1c2733; --muted:#67748a; --soft:#8a96a8;
+    --good:#1f9d57; --bad:#d64545; --warn:#d98a1f;
+    --shadow:0 1px 3px rgba(16,35,60,.07),0 6px 18px rgba(16,35,60,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.45;font-size:14px}
+  .wrap{max-width:1340px;margin:0 auto;padding:0 22px 50px}
+  .brand{background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 55%,#1d4f86 100%);color:#fff;padding:22px 0;margin-bottom:26px;box-shadow:var(--shadow)}
+  .brand .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;padding-bottom:0}
+  .brand .logo{display:flex;align-items:center;gap:14px}
+  .brand .mark{width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,var(--gold),#e6c560);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:19px;letter-spacing:-1px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .brand h1{font-size:21px;font-weight:650}
+  .brand .sub{color:#b9cce4;font-size:12.5px;margin-top:2px}
+  .brand .meta{text-align:right;font-size:12.5px;color:#cdddf0}
+  .brand .meta .corte{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:20px;font-weight:600;color:#fff}
+  section{margin-bottom:30px}
+  h2.sec{font-size:12.5px;text-transform:uppercase;letter-spacing:1.1px;color:var(--navy);font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+  h2.sec::before{content:"";width:4px;height:15px;background:var(--gold);border-radius:3px;display:inline-block}
+  .grid{display:grid;gap:15px}
+  .g5{grid-template-columns:repeat(5,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:1050px){.g5,.g4{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+  @media(max-width:560px){.g5,.g4{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:17px;box-shadow:var(--shadow)}
+  .kpi .k-label{color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .k-val{font-size:25px;font-weight:750;margin-top:7px;color:var(--navy)}
+  .kpi .k-sub{color:var(--soft);font-size:11.5px;margin-top:5px}
+  .kpi.hero{background:linear-gradient(150deg,var(--navy),var(--navy2));border:none}
+  .kpi.hero .k-label{color:#a9c2e0} .kpi.hero .k-val{color:#fff} .kpi.hero .k-sub{color:#94aece}
+  .kpi.ok .k-val{color:var(--good)} .kpi.bad .k-val{color:var(--bad)} .kpi.warn .k-val{color:var(--warn)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:9px 11px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  thead th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;background:#f7f9fc}
+  tbody tr:hover{background:#f6f9fd}
+  tfoot td{font-weight:700;border-top:2px solid var(--navy);border-bottom:none;color:var(--navy)}
+  .bar-cell{position:relative}
+  .bar-cell .barfill{position:absolute;left:0;top:3px;bottom:3px;background:linear-gradient(90deg,rgba(31,115,196,.16),rgba(31,115,196,.05));border-radius:0 4px 4px 0;z-index:0}
+  .bar-cell span{position:relative;z-index:1}
+  .chart-box{position:relative}
+  .pill{font-size:11px;padding:2px 9px;border-radius:11px;font-weight:700;white-space:nowrap}
+  .pill.ok{background:#e7f3ec;color:var(--good)} .pill.no{background:#fbe9e9;color:var(--bad)}
+  .pill.wa{background:#fdf3e3;color:var(--warn)} .pill.gy{background:#eef2f7;color:var(--muted)}
+  .note{color:var(--soft);font-size:11.5px;margin-top:11px;font-style:italic}
+  footer{color:var(--muted);font-size:11.5px;border-top:1px solid var(--line);padding-top:18px;margin-top:14px}
+  footer code{background:#eef2f7;padding:1px 6px;border-radius:4px;color:var(--navy);font-size:11px}
+
+  /* ---- conexión / configuración ---- */
+  .conn{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+  .conn .status{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--navy)}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--soft);flex:none}
+  .dot.on{background:var(--good)} .dot.err{background:var(--bad)}
+  .btn{border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  .btn.primary{background:var(--blue);color:#fff}
+  .btn.primary:hover{background:#1a63aa}
+  .btn.ghost{background:var(--sky);color:var(--blue)}
+  .btn.ghost:hover{background:#d9e8f8}
+  .btn.soft{background:#eef2f7;color:var(--muted)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .cfg{display:none;margin-top:15px;border-top:1px dashed var(--line);padding-top:15px}
+  .cfg.open{display:block}
+  .cfg .row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+  .cfg label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px}
+  .cfg input,.cfg select{border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:13px;font-family:inherit;min-width:280px;color:var(--txt)}
+  .cfg input:focus,.cfg select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(31,115,196,.15)}
+  details.help{margin-top:13px;font-size:13px}
+  details.help summary{cursor:pointer;font-weight:700;color:var(--blue);font-size:12.5px}
+  details.help ol{margin:10px 0 4px 20px}
+  details.help li{margin-bottom:7px}
+  details.help code{background:#eef2f7;padding:1px 6px;border-radius:4px;color:var(--navy);font-size:11.5px}
+  .alert{display:none;background:#fbe9e9;border:1px solid #f0c4c4;color:#9c2f2f;border-radius:9px;padding:10px 14px;font-size:12.5px;margin-top:12px}
+  .alert.show{display:block}
+
+  /* ---- fila de filtros ---- */
+  .filters{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+  .filters .f{display:flex;flex-direction:column;gap:5px}
+  .filters label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .filters select{border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;background:#fff;min-width:170px;color:var(--txt);cursor:pointer}
+  .filters select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(31,115,196,.15)}
+  .filters .spacer{flex:1}
+  .refresh-meta{font-size:11.5px;color:var(--soft);text-align:right}
+  .legend-row{display:flex;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px;align-items:center}
+  .legend-row .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .dim{opacity:.45;transition:opacity .25s}
+  .empty{color:var(--soft);text-align:center;padding:34px 10px;font-size:13px}
+
+  /* ---- barras apiladas por usuario (HTML/CSS, sin librerías) ---- */
+  .hbars .hrow{display:grid;grid-template-columns:minmax(120px,190px) 1fr 118px;gap:12px;align-items:center;padding:5px 0}
+  .hbars .hname{font-size:12.5px;text-align:right;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hbars .htrack{display:flex;gap:2px;height:18px;align-items:stretch;border-left:1px solid #c6cfda}
+  .hbars .seg{border-radius:0 4px 4px 0;transition:width .3s}
+  .hbars .seg.ot{background:var(--good)} .hbars .seg.lt{background:var(--bad);border-radius:4px}
+  .hbars .seg:first-child{border-radius:0 4px 4px 0}
+  .hbars .hvals{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .hbars .hvals b.g{color:var(--good)} .hbars .hvals b.r{color:var(--bad)}
+  .hbars .hrow:hover{background:#f6f9fd;border-radius:6px}
+  .haxis{display:grid;grid-template-columns:minmax(120px,190px) 1fr 118px;gap:12px;color:var(--soft);font-size:10.5px;margin-top:6px}
+  .haxis .ticks{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:4px}
+</style>
+</head>
+<body>
+
+  <div style="background:#0f2c4d;padding:9px 0"><div class="wrap" style="display:flex;gap:8px;padding-bottom:0;flex-wrap:wrap">
+    <a href="index.html" style="color:#b9cce4;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px">Dashboard operativo</a>
+    <a href="brief.html" style="color:#b9cce4;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px">Investment Brief</a>
+    <a href="matriz.html" style="color:#b9cce4;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px">Matriz · Ejecutado vs Proyectado</a>
+    <a href="planner-kpi.html" style="color:#fff;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px;background:rgba(255,255,255,.13)">KPI Planner</a>
+  </div></div>
+
+  <div class="brand">
+    <div class="wrap">
+      <div class="logo">
+        <div class="mark">PU</div>
+        <div>
+          <h1>Cumplimiento de KPI · Planner</h1>
+          <div class="sub">Periferia Urbana · Tareas por usuario · A tiempo vs. fuera de fecha</div>
+        </div>
+      </div>
+      <div class="meta">
+        <span class="corte" id="planBadge">Sin conectar</span>
+        <div style="margin-top:7px" id="lastSync">Los datos se leen en vivo desde Microsoft Planner</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- ============ CONEXIÓN ============ -->
+    <section>
+      <div class="card">
+        <div class="conn">
+          <div class="status"><span class="dot" id="connDot"></span><span id="connText">No conectado a Microsoft 365</span></div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            <button class="btn primary" id="btnLogin">Conectar con Microsoft</button>
+            <button class="btn ghost" id="btnRefresh" disabled>Actualizar ahora</button>
+            <button class="btn ghost" id="btnDemo">Ver con datos de ejemplo</button>
+            <button class="btn soft" id="btnCfg">⚙ Configuración</button>
+          </div>
+        </div>
+        <div class="alert" id="errBox"></div>
+        <div class="cfg" id="cfgPanel">
+          <div class="row">
+            <div>
+              <label for="cfgClient">Client ID (aplicación de Azure)</label>
+              <input id="cfgClient" placeholder="00000000-0000-0000-0000-000000000000" />
+            </div>
+            <div>
+              <label for="cfgTenant">Tenant ID (directorio)</label>
+              <input id="cfgTenant" placeholder="grupop.us o el GUID del directorio" />
+            </div>
+            <div>
+              <label for="cfgPlanName">Nombre del plan de Planner</label>
+              <input id="cfgPlanName" value="Periferia Urbana" />
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <button class="btn primary" id="btnSaveCfg">Guardar</button>
+            </div>
+          </div>
+          <details class="help">
+            <summary>¿Cómo obtengo el Client ID? (registro único, lo hace TI o un administrador — 5 min)</summary>
+            <ol>
+              <li>Entrar a <code>portal.azure.com</code> → <b>Microsoft Entra ID</b> → <b>Registros de aplicaciones</b> → <b>Nuevo registro</b>.</li>
+              <li>Nombre: <code>Dashboard KPI Planner</code>. Tipo de cuenta: <b>solo este directorio organizativo</b>.</li>
+              <li>En <b>URI de redirección</b> elegir <b>Aplicación de página única (SPA)</b> y pegar la URL donde vive esta página (por ejemplo <code>https://paolamp91.github.io/finanzas/planner-kpi.html</code>).</li>
+              <li>En <b>Permisos de API</b> → <b>Agregar permiso</b> → <b>Microsoft Graph</b> → <b>Permisos delegados</b>: agregar <code>User.Read</code>, <code>Tasks.Read</code> y <code>User.ReadBasic.All</code>. Pedir a un administrador el <b>consentimiento de administrador</b>.</li>
+              <li>Copiar el <b>Id. de aplicación (cliente)</b> y el <b>Id. de directorio (inquilino)</b> de la página <b>Información general</b> y pegarlos aquí. Quedan guardados en este navegador.</li>
+            </ol>
+            <p style="color:var(--muted);font-size:12px">También puedes pasar la configuración en la URL: <code>planner-kpi.html?clientId=…&amp;tenant=…&amp;plan=Periferia%20Urbana</code> — útil para la pestaña de Teams, así nadie tiene que configurar nada.</p>
+          </details>
+          <details class="help">
+            <summary>¿Cómo lo dejo publicado en el canal “General Administrativo” y que se actualice solo?</summary>
+            <ol>
+              <li><b>Publicar la página:</b> en GitHub → repositorio <code>finanzas</code> → <b>Settings → Pages</b> → Source: <code>main</code>. La página quedará en <code>https://paolamp91.github.io/finanzas/planner-kpi.html</code>.</li>
+              <li><b>Agregarla a Teams:</b> abrir el equipo → canal <b>General Administrativo</b> → botón <b>+</b> (Agregar pestaña) → <b>Sitio web</b> → nombre <code>KPI Planner</code> y pegar la URL de arriba (con <code>?clientId=…&amp;tenant=…</code> al final).</li>
+              <li><b>Actualización:</b> no hay que hacer nada. Cada vez que alguien abre la pestaña, la página consulta Planner en vivo; además se refresca sola cada 5 minutos mientras está abierta. Cada persona inicia sesión con su propia cuenta de Microsoft la primera vez.</li>
+            </ol>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FILTROS ============ -->
+    <section>
+      <div class="card">
+        <div class="filters">
+          <div class="f">
+            <label for="fUser">Usuario</label>
+            <select id="fUser"><option value="">Todos los usuarios</option></select>
+          </div>
+          <div class="f">
+            <label for="fPeriod">Período</label>
+            <select id="fPeriod">
+              <option value="all">Todo el historial</option>
+              <option value="7">Últimos 7 días</option>
+              <option value="30" selected>Últimos 30 días</option>
+              <option value="90">Últimos 90 días</option>
+              <option value="mtd">Mes en curso</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="fStatus">Estado de la tarea</label>
+            <select id="fStatus">
+              <option value="all">Todos los estados</option>
+              <option value="ontime">Realizadas en fecha estimada</option>
+              <option value="late">Realizadas fuera de fecha</option>
+              <option value="nodate">Realizadas sin fecha estimada</option>
+              <option value="overdue">Pendientes vencidas</option>
+              <option value="open">Pendientes en plazo</option>
+            </select>
+          </div>
+          <div class="spacer"></div>
+          <div class="refresh-meta" id="refreshMeta">—</div>
+        </div>
+      </div>
+    </section>
+
+    <div id="dash" class="dim" style="opacity:.35">
+
+    <!-- ============ KPI ROW ============ -->
+    <section>
+      <h2 class="sec">Resumen de cumplimiento <span id="scopeTag" style="text-transform:none;letter-spacing:0;color:var(--muted);font-weight:600"></span></h2>
+      <div class="grid g5">
+        <div class="card kpi hero"><div class="k-label">% Cumplimiento</div><div class="k-val" id="kPct">—</div><div class="k-sub">a tiempo / completadas con fecha</div></div>
+        <div class="card kpi ok"><div class="k-label">✔ Realizadas en fecha estimada</div><div class="k-val" id="kOnTime">—</div><div class="k-sub" id="kOnTimeSub">&nbsp;</div></div>
+        <div class="card kpi bad"><div class="k-label">✖ Realizadas fuera de fecha</div><div class="k-val" id="kLate">—</div><div class="k-sub" id="kLateSub">&nbsp;</div></div>
+        <div class="card kpi warn"><div class="k-label">⚠ Pendientes vencidas</div><div class="k-val" id="kOverdue">—</div><div class="k-sub">sin completar y ya pasó la fecha</div></div>
+        <div class="card kpi"><div class="k-label">Tareas en el filtro</div><div class="k-val" id="kTotal">—</div><div class="k-sub" id="kTotalSub">&nbsp;</div></div>
+      </div>
+    </section>
+
+    <!-- ============ GRÁFICA POR USUARIO ============ -->
+    <section>
+      <h2 class="sec">Tareas completadas por usuario · a tiempo vs. fuera de fecha</h2>
+      <div class="card">
+        <div class="chart-box"><div class="hbars" id="chartUsers"></div><div class="haxis" id="chartAxis"></div></div>
+        <div class="legend-row">
+          <span><span class="sw" style="background:var(--good)"></span><b>✔ En fecha estimada</b> — completada en o antes de la fecha límite</span>
+          <span><span class="sw" style="background:var(--bad)"></span><b>✖ Fuera de fecha</b> — completada después de la fecha límite</span>
+        </div>
+        <div class="note">Una tarea asignada a varias personas cuenta para cada una. Las tareas completadas sin fecha límite no entran en el % de cumplimiento (se listan aparte en la tabla).</div>
+      </div>
+    </section>
+
+    <!-- ============ TABLA POR USUARIO ============ -->
+    <section>
+      <h2 class="sec">Detalle de KPI por usuario</h2>
+      <div class="card" style="overflow-x:auto">
+        <table id="tblUsers">
+          <thead><tr>
+            <th>Usuario</th><th>Asignadas</th><th>Completadas</th>
+            <th>✔ En fecha</th><th>✖ Fuera de fecha</th><th>Sin fecha est.</th>
+            <th>Pend. en plazo</th><th>⚠ Pend. vencidas</th><th>% Cumplimiento</th>
+          </tr></thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ DETALLE DE TAREAS ============ -->
+    <section>
+      <h2 class="sec">Tareas del filtro actual</h2>
+      <div class="card" style="overflow-x:auto">
+        <table id="tblTasks">
+          <thead><tr>
+            <th>Tarea</th><th style="text-align:left">Asignada a</th>
+            <th>Fecha estimada</th><th>Fecha completada</th><th>Estado</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="note" id="tasksNote"></div>
+      </div>
+    </section>
+
+    </div><!-- /dash -->
+
+    <footer>
+      Fuente: Microsoft Planner vía Microsoft Graph (<code>/me/planner/plans</code> → <code>/planner/plans/{id}/tasks</code>), lectura en vivo con la sesión de cada usuario ·
+      “En fecha estimada” = fecha de completado ≤ fecha límite (comparación por día) ·
+      Auto-refresco cada 5 minutos mientras la página está abierta.
+    </footer>
+  </div>
+
+<script>
+"use strict";
+/* ================= configuración ================= */
+const qs = new URLSearchParams(location.search);
+const store = {
+  get clientId(){ return qs.get("clientId") || localStorage.getItem("pu_clientId") || ""; },
+  get tenant(){ return qs.get("tenant") || localStorage.getItem("pu_tenant") || "common"; },
+  get planName(){ return qs.get("plan") || localStorage.getItem("pu_planName") || "Periferia Urbana"; },
+  save(c,t,p){ localStorage.setItem("pu_clientId",c); localStorage.setItem("pu_tenant",t); localStorage.setItem("pu_planName",p); }
+};
+const SCOPES = ["User.Read","Tasks.Read","User.ReadBasic.All"];
+const GRAPH = "https://graph.microsoft.com/v1.0";
+const REFRESH_MS = 5*60*1000;
+
+const $ = id => document.getElementById(id);
+
+/* ================= estado ================= */
+let msalApp = null, account = null, plan = null;
+let tasks = [];          // [{title, dueDate, doneDate, users:[{id,name}], status}]
+let userNames = {};      // id -> displayName
+let demoMode = false, refreshTimer = null;
+
+/* ================= utilidades de fecha ================= */
+const dayKey = iso => iso ? iso.slice(0,10) : null;            // compara por día
+const fmt = k => k ? k.split("-").reverse().join("/") : "—";
+const todayKey = () => new Date().toISOString().slice(0,10);
+
+function classify(t){
+  if (t.doneDate){
+    if (!t.dueDate) return "nodate";
+    return t.doneDate <= t.dueDate ? "ontime" : "late";
+  }
+  if (t.dueDate && t.dueDate < todayKey()) return "overdue";
+  return "open";
+}
+const STATUS_META = {
+  ontime:{label:"✔ En fecha estimada", pill:"ok"},
+  late:{label:"✖ Fuera de fecha", pill:"no"},
+  nodate:{label:"Completada · sin fecha est.", pill:"gy"},
+  overdue:{label:"⚠ Pendiente vencida", pill:"wa"},
+  open:{label:"Pendiente en plazo", pill:"gy"},
+};
+
+/* ================= MSAL / Graph ================= */
+function initMsal(){
+  if (typeof msal === "undefined") throw new Error("No se pudo cargar la librería de autenticación de Microsoft (revisa la conexión a internet y recarga la página).");
+  if (!store.clientId) return null;
+  if (msalApp) return msalApp;
+  msalApp = new msal.PublicClientApplication({
+    auth:{
+      clientId: store.clientId,
+      authority: "https://login.microsoftonline.com/" + store.tenant,
+      redirectUri: location.origin + location.pathname
+    },
+    cache:{ cacheLocation:"localStorage" }
+  });
+  return msalApp;
+}
+
+async function getToken(interactive){
+  const app = initMsal();
+  await app.initialize();
+  const red = await app.handleRedirectPromise();
+  if (red && red.account) account = red.account;
+  if (!account) account = app.getAllAccounts()[0] || null;
+  if (account){
+    try{
+      const r = await app.acquireTokenSilent({scopes:SCOPES, account});
+      return r.accessToken;
+    }catch(e){ if(!interactive) throw e; }
+  }
+  if (!interactive) throw new Error("Sesión no iniciada");
+  try{
+    const r = await app.loginPopup({scopes:SCOPES});
+    account = r.account;
+    return r.accessToken;
+  }catch(e){
+    // popup bloqueado (p. ej. dentro de Teams) → flujo por redirección
+    if (/popup|window/i.test(String(e))){ await app.loginRedirect({scopes:SCOPES}); return null; }
+    throw e;
+  }
+}
+
+async function g(token, url){
+  const r = await fetch(url.startsWith("http") ? url : GRAPH+url, {headers:{Authorization:"Bearer "+token}});
+  if (!r.ok) throw new Error("Graph "+r.status+" en "+url+": "+(await r.text()).slice(0,300));
+  return r.json();
+}
+
+async function gAll(token, url){ // sigue @odata.nextLink
+  let out=[], next=url;
+  while(next){ const j=await g(token,next); out=out.concat(j.value||[]); next=j["@odata.nextLink"]; }
+  return out;
+}
+
+async function resolveNames(token, ids){
+  const missing=[...new Set(ids)].filter(id=>!userNames[id]);
+  for (let i=0;i<missing.length;i+=20){
+    const batch = missing.slice(i,i+20);
+    const body = {requests: batch.map((id,n)=>({id:String(n), method:"GET", url:"/users/"+id+"?$select=displayName,id"}))};
+    try{
+      const r = await fetch(GRAPH+"/$batch",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify(body)});
+      const j = await r.json();
+      (j.responses||[]).forEach(resp=>{
+        const id = batch[Number(resp.id)];
+        userNames[id] = (resp.status===200 && resp.body && resp.body.displayName) ? resp.body.displayName : "Usuario "+id.slice(0,8);
+      });
+    }catch(e){ batch.forEach(id=>userNames[id]="Usuario "+id.slice(0,8)); }
+  }
+}
+
+async function loadFromPlanner(interactive){
+  setBusy(true); hideError();
+  try{
+    if (!store.clientId){ openCfg("Falta el Client ID: pide a TI el registro de la aplicación (instrucciones en ⚙ Configuración) o usa los datos de ejemplo."); setBusy(false); return; }
+    const token = await getToken(interactive);
+    if (token === null) return; // redirigiendo a login
+    setConn("on","Conectado como "+(account?.name || account?.username || "usuario"));
+
+    // 1) localizar el plan
+    const plans = await gAll(token, "/me/planner/plans");
+    const wanted = store.planName.toLowerCase();
+    plan = plans.find(p=>(p.title||"").toLowerCase().includes(wanted)) || null;
+    if (!plan){
+      const names = plans.map(p=>p.title).join(" · ") || "ninguno";
+      throw new Error("No encontré un plan que contenga \""+store.planName+"\". Planes visibles con tu cuenta: "+names+". Ajusta el nombre en ⚙ Configuración.");
+    }
+    $("planBadge").textContent = "Plan: "+plan.title;
+
+    // 2) tareas del plan
+    const raw = await gAll(token, "/planner/plans/"+plan.id+"/tasks");
+
+    // 3) nombres de los asignados
+    const ids = raw.flatMap(t=>Object.keys(t.assignments||{}));
+    await resolveNames(token, ids);
+
+    tasks = raw.map(t=>({
+      title: t.title,
+      dueDate: dayKey(t.dueDateTime),
+      doneDate: t.percentComplete===100 ? dayKey(t.completedDateTime) || todayKey() : null,
+      users: Object.keys(t.assignments||{}).map(id=>({id, name:userNames[id]||id})),
+    }));
+    demoMode = false;
+    afterLoad();
+  }catch(e){
+    showError(e.message||String(e));
+    setConn(account?"on":"err", account?("Conectado como "+(account.name||account.username)):"Error de conexión");
+  }
+  setBusy(false);
+}
+
+/* ================= datos de ejemplo ================= */
+function loadDemo(){
+  demoMode = true; plan = {title:"Periferia Urbana (ejemplo)"};
+  $("planBadge").textContent = "Plan: Periferia Urbana · DATOS DE EJEMPLO";
+  const team = ["Paola Martínez","Carlos Ruiz","Ana López","Jorge Díaz","María Chen"];
+  const base = new Date(); base.setDate(base.getDate()-45);
+  const D = n => { const d=new Date(base); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+  let seed = 7; const rnd = () => (seed = (seed*16807)%2147483647) / 2147483647;
+  tasks = [];
+  const verbs=["Revisión de","Entrega de","Aprobación de","Cotización de","Informe de","Inspección de","Trámite de","Pago a"];
+  const objs=["planos F2","licencias municipales","proveedores","avance de obra","presupuesto mensual","topografía","escrituras","contratistas","permisos ambientales","mercadeo"];
+  for(let i=0;i<58;i++){
+    const u = team[Math.floor(rnd()*team.length)];
+    const due = Math.floor(rnd()*50);
+    const hasDue = rnd()>0.12;
+    const done = rnd()>0.28;
+    const slip = rnd()>0.62 ? Math.ceil(rnd()*7) : -Math.floor(rnd()*3);
+    tasks.push({
+      title: verbs[i%verbs.length]+" "+objs[Math.floor(rnd()*objs.length)],
+      dueDate: hasDue ? D(due) : null,
+      doneDate: done ? D(Math.max(0,due+ (hasDue?slip:0))) : null,
+      users: [{id:u, name:u}],
+    });
+  }
+  setConn("on","Modo de ejemplo (sin conexión) — usa “Conectar con Microsoft” para datos reales");
+  afterLoad();
+}
+
+/* ================= filtros + agregación ================= */
+function currentFilter(){
+  return { user: $("fUser").value, period: $("fPeriod").value, status: $("fStatus").value };
+}
+
+function periodStart(p){
+  if (p==="all") return null;
+  const d = new Date();
+  if (p==="mtd") return d.toISOString().slice(0,8)+"01";
+  d.setDate(d.getDate()-Number(p));
+  return d.toISOString().slice(0,10);
+}
+
+function filteredTasks(){
+  const f = currentFilter(), start = periodStart(f.period);
+  return tasks.filter(t=>{
+    const st = classify(t);
+    if (f.status!=="all" && st!==f.status) return false;
+    if (f.user && !t.users.some(u=>u.name===f.user)) return false;
+    if (start){
+      const ref = t.doneDate || t.dueDate; // completadas por fecha de completado; pendientes por fecha límite
+      if (ref && ref < start) return false;
+      if (!ref) return true; // sin ninguna fecha: siempre visible
+    }
+    return true;
+  });
+}
+
+function aggregateByUser(list){
+  const m = {};
+  list.forEach(t=>{
+    const st = classify(t);
+    const us = t.users.length ? t.users : [{name:"Sin asignar"}];
+    us.forEach(u=>{
+      const r = m[u.name] || (m[u.name]={user:u.name,total:0,done:0,ontime:0,late:0,nodate:0,open:0,overdue:0});
+      r.total++; r[st]++;
+      if (st==="ontime"||st==="late"||st==="nodate") r.done++;
+    });
+  });
+  return Object.values(m).sort((a,b)=>(b.ontime+b.late)-(a.ontime+a.late) || b.total-a.total);
+}
+
+/* ================= render ================= */
+function afterLoad(){
+  // poblar combo de usuarios (conserva selección)
+  const sel = $("fUser"), prev = sel.value;
+  const names = [...new Set(tasks.flatMap(t=>t.users.map(u=>u.name)))].sort((a,b)=>a.localeCompare(b,"es"));
+  sel.innerHTML = '<option value="">Todos los usuarios</option>' + names.map(n=>`<option>${esc(n)}</option>`).join("");
+  if (names.includes(prev)) sel.value = prev;
+  $("btnRefresh").disabled = demoMode;
+  $("lastSync").innerHTML = "Última actualización: <b>"+new Date().toLocaleString("es-GT")+"</b>";
+  render();
+  armAutoRefresh();
+}
+
+function render(){
+  const list = filteredTasks();
+  const rows = aggregateByUser(list);
+  const f = currentFilter();
+
+  const sum = k => rows.reduce((a,r)=>a+r[k],0);
+  const ontime=sum("ontime"), late=sum("late"), overdue=sum("overdue"), nodate=sum("nodate"), open=sum("open");
+  const withDate = ontime+late;
+  const pct = withDate ? Math.round(ontime/withDate*100) : null;
+
+  $("kPct").textContent = pct===null ? "—" : pct+"%";
+  $("kOnTime").textContent = ontime;
+  $("kOnTimeSub").textContent = withDate ? Math.round(ontime/withDate*100)+"% de las completadas con fecha" : "sin completadas con fecha en el filtro";
+  $("kLate").textContent = late;
+  $("kLateSub").textContent = withDate ? Math.round(late/withDate*100)+"% de las completadas con fecha" : " ";
+  $("kOverdue").textContent = overdue;
+  $("kTotal").textContent = list.length;
+  $("kTotalSub").textContent = "completadas sin fecha: "+nodate+" · pendientes en plazo: "+open;
+  $("scopeTag").textContent = "· "+($("fUser").value||"todos los usuarios")+" · "+$("fPeriod").selectedOptions[0].text.toLowerCase();
+
+  renderChart(rows);
+  renderUserTable(rows);
+  renderTaskTable(list);
+  $("dash").style.opacity = 1;
+}
+
+function renderChart(rows){
+  const box = $("chartUsers"), axis = $("chartAxis");
+  const top = rows.filter(r=>r.ontime+r.late>0).slice(0,16);
+  if (!top.length){
+    box.innerHTML = '<div class="empty">No hay tareas completadas con fecha límite en el filtro actual</div>';
+    axis.innerHTML = "";
+    return;
+  }
+  const max = Math.max(...top.map(r=>r.ontime+r.late));
+  box.innerHTML = top.map(r=>{
+    const wd = r.ontime+r.late, pct = Math.round(r.ontime/wd*100);
+    const tip = `${r.user}: ✔ ${r.ontime} en fecha · ✖ ${r.late} fuera de fecha · cumplimiento ${pct}%`;
+    const seg = (n,cls)=> n>0 ? `<div class="seg ${cls}" style="width:${(n/max*100).toFixed(2)}%"></div>` : "";
+    return `<div class="hrow" title="${esc(tip)}">
+      <div class="hname">${esc(r.user)}</div>
+      <div class="htrack">${seg(r.ontime,"ot")}${seg(r.late,"lt")}</div>
+      <div class="hvals"><b class="g">✔ ${r.ontime}</b> · <b class="r">✖ ${r.late}</b> · ${pct}%</div>
+    </div>`;
+  }).join("");
+  const mid = Math.round(max/2);
+  axis.innerHTML = `<div></div><div class="ticks"><span>0</span><span>${mid}</span><span>${max} tareas</span></div><div></div>`;
+}
+
+function renderUserTable(rows){
+  const tb = $("tblUsers").querySelector("tbody");
+  const tf = $("tblUsers").querySelector("tfoot");
+  if (!rows.length){ tb.innerHTML = '<tr><td colspan="9" class="empty">No hay tareas con el filtro actual</td></tr>'; tf.innerHTML=""; return; }
+  const maxDone = Math.max(...rows.map(r=>r.done),1);
+  tb.innerHTML = rows.map(r=>{
+    const wd=r.ontime+r.late, pct = wd? Math.round(r.ontime/wd*100) : null;
+    const pill = pct===null ? '<span class="pill gy">s/d</span>' : `<span class="pill ${pct>=80?"ok":pct>=50?"wa":"no"}">${pct}%</span>`;
+    return `<tr>
+      <td>${esc(r.user)}</td><td>${r.total}</td>
+      <td class="bar-cell"><div class="barfill" style="width:${r.done/maxDone*100}%"></div><span>${r.done}</span></td>
+      <td class="pos">${r.ontime}</td><td class="neg">${r.late}</td><td>${r.nodate}</td>
+      <td>${r.open}</td><td style="color:var(--warn);font-weight:600">${r.overdue}</td><td>${pill}</td>
+    </tr>`;
+  }).join("");
+  const s = k => rows.reduce((a,r)=>a+r[k],0);
+  const wd=s("ontime")+s("late");
+  tf.innerHTML = `<tr><td>Total</td><td>${s("total")}</td><td>${s("done")}</td><td>${s("ontime")}</td><td>${s("late")}</td><td>${s("nodate")}</td><td>${s("open")}</td><td>${s("overdue")}</td><td>${wd?Math.round(s("ontime")/wd*100)+"%":"—"}</td></tr>`;
+}
+
+function renderTaskTable(list){
+  const tb = $("tblTasks").querySelector("tbody");
+  const sorted = [...list].sort((a,b)=>(b.doneDate||b.dueDate||"")<(a.doneDate||a.dueDate||"")?-1:1);
+  const shown = sorted.slice(0,120);
+  if (!shown.length){ tb.innerHTML = '<tr><td colspan="5" class="empty">No hay tareas con el filtro actual</td></tr>'; }
+  else tb.innerHTML = shown.map(t=>{
+    const st = classify(t), m = STATUS_META[st];
+    return `<tr>
+      <td>${esc(t.title)}</td>
+      <td style="text-align:left;color:var(--muted)">${esc(t.users.map(u=>u.name).join(", ")||"Sin asignar")}</td>
+      <td>${fmt(t.dueDate)}</td><td>${fmt(t.doneDate)}</td>
+      <td><span class="pill ${m.pill}">${m.label}</span></td>
+    </tr>`;
+  }).join("");
+  $("tasksNote").textContent = list.length>shown.length ? `Mostrando ${shown.length} de ${list.length} tareas (usa los filtros para acotar).` : `${list.length} tareas en el filtro actual.`;
+}
+
+/* ================= UI ================= */
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function setConn(state,text){ $("connDot").className = "dot "+(state==="on"?"on":state==="err"?"err":""); $("connText").textContent = text; }
+function setBusy(b){ $("dash").style.opacity = b ? .45 : 1; $("btnLogin").disabled = b; }
+function showError(msg){ const e=$("errBox"); e.textContent=msg; e.classList.add("show"); }
+function hideError(){ $("errBox").classList.remove("show"); }
+function openCfg(msg){ $("cfgPanel").classList.add("open"); if(msg) showError(msg); }
+
+function armAutoRefresh(){
+  clearInterval(refreshTimer);
+  if (demoMode){ $("refreshMeta").textContent = "Datos de ejemplo — sin auto-refresco"; return; }
+  $("refreshMeta").textContent = "Se actualiza solo cada 5 min";
+  refreshTimer = setInterval(()=>loadFromPlanner(false).catch(()=>{}), REFRESH_MS);
+}
+
+$("btnCfg").onclick = ()=> $("cfgPanel").classList.toggle("open");
+$("btnSaveCfg").onclick = ()=>{
+  store.save($("cfgClient").value.trim(), $("cfgTenant").value.trim()||"common", $("cfgPlanName").value.trim()||"Periferia Urbana");
+  msalApp = null; hideError();
+  $("cfgPanel").classList.remove("open");
+  loadFromPlanner(true);
+};
+$("btnLogin").onclick = ()=> loadFromPlanner(true);
+$("btnRefresh").onclick = ()=> loadFromPlanner(false);
+$("btnDemo").onclick = loadDemo;
+["fUser","fPeriod","fStatus"].forEach(id=> $(id).onchange = render);
+
+/* ================= arranque ================= */
+$("cfgClient").value = store.clientId;
+$("cfgTenant").value = store.tenant==="common" ? "" : store.tenant;
+$("cfgPlanName").value = store.planName;
+
+(async ()=>{
+  if (store.clientId){
+    try{ await loadFromPlanner(false); return; }catch(e){}
+    setConn("", "Configuración lista — haz clic en “Conectar con Microsoft”");
+  } else {
+    setConn("", "Sin configurar — abre ⚙ Configuración o mira los datos de ejemplo");
+  }
+})();
+</script>
+</body>
+</html>
