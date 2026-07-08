@@ -120,3 +120,16 @@ Automática: la página consulta Planner en vivo al abrirse y se refresca cada 5
 
 **Sin configuración todavía:** el botón **"Ver con datos de ejemplo"** muestra el dashboard completo
 con datos ficticios para revisar el diseño antes de conectarlo.
+
+## Corte desde Excel (sin conexión): `build_from_planner.py`
+
+El dashboard trae **embebido un corte real del plan** (export de Excel de Planner), así que funciona
+completo aunque no haya conexión configurada; la barra superior indica la fecha del corte. Para
+refrescar el corte con un export nuevo:
+
+1. En Planner (Teams) → el plan → **… → Exportar plan a Excel**.
+2. `python3 build_from_planner.py "PLANNER_PERIFERIA_URBANA.xlsx"` (requiere `pip install openpyxl`).
+3. Commit y push de `planner-kpi.html`.
+
+La conexión en vivo (botón "Conectar con Microsoft") sigue disponible y, cuando está configurada,
+tiene prioridad sobre el corte. Corte actual: **07/07/2026 · 501 tareas**.
