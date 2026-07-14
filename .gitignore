@@ -1,0 +1,5 @@
+# archivos temporales del motor de refresco
+_ultimo_seguimiento.xlsx
+_site/
+__pycache__/
+*.pyc

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="refresh" content="3600"/>
+<title>PMO · Planificación Fase 2 · Boulevard Sur</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{--navy:#0f2c4d;--navy2:#16406e;--blue:#1f73c4;--sky:#e8f0fa;--gold:#c9a227;--teal:#0f9d8c;
+    --bg:#eef1f6;--card:#fff;--line:#e2e8f0;--txt:#1c2733;--muted:#67748a;--soft:#8a96a8;
+    --good:#1f9d57;--bad:#d64545;--warn:#d98a1f;--shadow:0 1px 3px rgba(16,35,60,.07),0 6px 18px rgba(16,35,60,.05);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.45;font-size:13.5px}
+  .wrap{max-width:1300px;margin:0 auto;padding:0 22px 55px}
+  .brand{background:linear-gradient(120deg,var(--navy),var(--navy2) 55%,#1d4f86);color:#fff;padding:24px 0;box-shadow:var(--shadow)}
+  .brand .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;padding-bottom:0}
+  .brand .kick{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase}
+  .brand h1{font-size:23px;font-weight:700;margin-top:4px}
+  .brand .sub{color:#b9cce4;font-size:12.5px;margin-top:5px}
+  .brand .meta{text-align:right;font-size:12px;color:#cdddf0}
+  .live{background:rgba(31,157,87,.22);border:1px solid rgba(82,217,135,.5);color:#aef0c8;font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+  .live.warn{background:rgba(217,138,31,.18);border-color:rgba(217,138,31,.5);color:#f2cf95}
+  .dot{width:7px;height:7px;border-radius:50%;background:#52d987;display:inline-block;box-shadow:0 0 0 3px rgba(82,217,135,.25)}
+  .live.warn .dot{background:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.25)}
+  .corte{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);padding:5px 12px;border-radius:20px;font-weight:600;color:#fff;margin-top:8px}
+  section{margin-top:28px}
+  h2.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.1px;color:var(--navy);font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+  h2.sec::before{content:"";width:4px;height:15px;background:var(--gold);border-radius:3px}
+  h2.sec .hint{font-weight:600;letter-spacing:0;text-transform:none;color:var(--soft);font-size:11.5px;margin-left:auto}
+  .grid{display:grid;gap:14px}.g6{grid-template-columns:repeat(6,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1.35fr 1fr}
+  @media(max-width:1040px){.g6{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
+  @media(max-width:560px){.g6,.g4{grid-template-columns:repeat(2,1fr)}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .kpi .kl{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .kv{font-size:24px;font-weight:800;color:var(--navy);margin-top:6px;line-height:1.1}
+  .kpi .ks{color:var(--soft);font-size:11.5px;margin-top:5px}
+  .kpi.hero{background:linear-gradient(150deg,var(--navy),var(--navy2));border:none}
+  .kpi.hero .kl{color:#a9c2e0}.kpi.hero .kv{color:#fff}.kpi.hero .ks{color:#94aece}
+  .kpi.gold .kv{color:var(--gold)}.kpi.teal .kv{color:var(--teal)}.kpi.warn .kv{color:var(--warn)}
+  /* progreso circular */
+  .gauge{display:flex;align-items:center;gap:16px}
+  .ring{--v:0;--c:var(--gold);width:92px;height:92px;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(var(--c) calc(var(--v)*1%),#e6ecf4 0);display:flex;align-items:center;justify-content:center;position:relative}
+  .ring::before{content:"";position:absolute;inset:9px;background:var(--card);border-radius:50%}
+  .ring b{position:relative;font-size:20px;font-weight:800;color:var(--navy)}
+  .ring.onnavy::before{background:var(--navy)}.ring.onnavy b{color:#fff}
+  /* barra */
+  .bar{height:9px;border-radius:6px;background:#e6ecf4;overflow:hidden;margin-top:7px}
+  .bar > i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--blue),var(--teal))}
+  /* tabla fases */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:10px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th:first-child,td:first-child{text-align:left}
+  thead th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;background:#f7f9fc}
+  tbody tr:hover{background:#f6f9fd}
+  .ph{font-weight:650;color:var(--navy)}
+  .resp{display:inline-block;font-size:10.5px;font-weight:700;color:var(--blue);background:var(--sky);border:1px solid #cfe0f2;padding:2px 8px;border-radius:20px}
+  .minibar{width:120px;height:8px;border-radius:5px;background:#e6ecf4;display:inline-block;overflow:hidden;vertical-align:middle;margin-right:8px}
+  .minibar > i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--teal))}
+  .pend{color:var(--soft);font-style:italic;font-size:11.5px}
+  /* timeline / gantt */
+  .tl{position:relative;margin-top:6px}
+  .tlrow{display:grid;grid-template-columns:210px 1fr;gap:12px;align-items:center;padding:7px 0}
+  .tlname{font-size:12.5px;color:var(--navy);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tltrack{position:relative;height:22px;background:#eef2f7;border-radius:6px}
+  .tlbar{position:absolute;top:3px;bottom:3px;border-radius:5px;background:linear-gradient(90deg,var(--navy2),var(--blue));box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+  .tltoday{position:absolute;top:0;bottom:0;width:2px;background:var(--gold);z-index:3}
+  .tltoday.lbl{top:-6px}
+  .tltoday.lbl::after{content:"HOY";position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;color:var(--gold);letter-spacing:.5px}
+  .tlaxis{display:grid;grid-template-columns:210px 1fr;gap:12px;margin-top:8px}
+  .tlaxis .ax{display:flex;justify-content:space-between;color:var(--soft);font-size:10.5px}
+  .tlpend{position:absolute;inset:3px 0;border-radius:5px;border:1.5px dashed #c3ceda;background:repeating-linear-gradient(45deg,#f3f6fa,#f3f6fa 6px,#eaeff5 6px,#eaeff5 12px)}
+  /* hitos */
+  .hito{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .hito:last-child{border:none}
+  .hdate{flex:0 0 auto;text-align:center;background:var(--sky);border:1px solid #cfe0f2;border-radius:9px;padding:6px 9px;min-width:56px}
+  .hdate .d{font-size:17px;font-weight:800;color:var(--navy);line-height:1}
+  .hdate .m{font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px}
+  .hbody .hn{font-weight:600;color:var(--txt)}
+  .hbody .hr{color:var(--soft);font-size:11.5px;margin-top:2px}
+  .hdias{margin-left:auto;font-size:11px;font-weight:700;color:var(--warn);white-space:nowrap}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+  .chip{background:var(--sky);color:var(--blue);font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:8px;border:1px solid #cfe0f2}
+  .chart-box{position:relative;height:250px}
+  .note{color:var(--soft);font-size:11.5px;margin-top:12px}
+  footer{color:var(--muted);font-size:11.5px;border-top:1px solid var(--line);padding-top:18px;margin-top:34px}
+  footer code{background:#eef2f7;padding:1px 6px;border-radius:4px;color:var(--navy);font-size:11px}
+  footer b{color:var(--navy)}
+  .banner{background:#fff7e6;border:1px solid #f0d79a;color:#8a6d1f;border-radius:10px;padding:11px 14px;font-size:12px;margin-top:14px;display:flex;gap:9px;align-items:flex-start}
+  .banner b{color:#6b520f}
+</style>
+</head>
+<body>
+  <header class="brand">
+    <div class="wrap">
+      <div>
+        <div class="kick">Periferia Urbana · PMO</div>
+        <h1>Planificación Fase 2 · Boulevard Sur</h1>
+        <div class="sub" id="projName">—</div>
+        <span class="corte" id="corte">Corte —</span>
+      </div>
+      <div class="meta">
+        <div id="liveBadge"></div>
+        <div style="margin-top:9px" id="folder">—</div>
+        <div style="margin-top:3px">Actualizado <b id="gen">—</b></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="syncBanner"></div>
+
+    <!-- KPIs -->
+    <section>
+      <h2 class="sec">Resumen del programa</h2>
+      <div class="grid g6" id="kpis"></div>
+    </section>
+
+    <!-- Avance calendario vs ejecución -->
+    <section>
+      <h2 class="sec">Avance <span class="hint">Calendario transcurrido vs. ejecución de tareas</span></h2>
+      <div class="grid g2">
+        <div class="card">
+          <div class="gauge">
+            <div class="ring onnavy" id="ringCal" style="--c:var(--gold)"><b id="ringCalTxt">—</b></div>
+            <div>
+              <div class="kpi"><div class="kl">Calendario transcurrido</div>
+              <div class="kv" id="calDias">—</div>
+              <div class="ks" id="calSub">—</div></div>
+            </div>
+          </div>
+          <div style="margin-top:14px">
+            <div class="gauge">
+              <div class="ring" id="ringEjec" style="--c:var(--teal)"><b id="ringEjecTxt">—</b></div>
+              <div>
+                <div class="kpi"><div class="kl">Ejecución de tareas</div>
+                <div class="kv teal" id="ejecTxt">—</div>
+                <div class="ks" id="ejecSub">Avance físico del plan (% MS Project)</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="note" id="gapNote"></div>
+        </div>
+        <div class="card">
+          <div class="kl" style="color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Distribución de tareas por responsable</div>
+          <div class="chart-box" style="height:220px"><canvas id="respChart"></canvas></div>
+          <div id="respChips" class="chips"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cronograma -->
+    <section>
+      <h2 class="sec">Cronograma por fase <span class="hint">Ventana del programa · marcador HOY</span></h2>
+      <div class="card">
+        <div class="tl" id="timeline"></div>
+        <div class="tlaxis"><div></div><div class="ax"><span id="axStart">—</span><span id="axEnd">—</span></div></div>
+      </div>
+    </section>
+
+    <!-- Tabla de fases -->
+    <section>
+      <h2 class="sec">Fases de planificación</h2>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr><th>Fase</th><th>Responsable</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Avance</th></tr></thead>
+          <tbody id="fasesBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Hitos -->
+    <section>
+      <h2 class="sec">Próximos hitos y homologaciones</h2>
+      <div class="card" id="hitos"></div>
+    </section>
+
+    <footer>
+      <div>Fuente: <b id="fFolder">—</b> › <code id="fFile">—</code></div>
+      <div style="margin-top:7px">Este tablero se regenera automáticamente tomando el archivo de <b>fecha más cercana a hoy</b> dentro de la carpeta de Seguimiento Semanal. La página se refresca sola cada hora.</div>
+    </footer>
+  </div>
+
+<script>
+const D = {"corte": "13/07/2026", "archivo": "13 07 2026 DASHBOARD PLANIFICACION.xlsx", "carpeta": "TECNICO-BOULEVARSUR › PLANIFICACION › 01. PLANNER › FASE 2 › 02. Seguimiento Semanal", "sincronizado": false, "proyecto": {"nombre": "PROGRAMA DE PLANIFICACIÓN FASE 2 · BOULEVARD SUR", "inicio": "2025-10-29", "fin": "2027-04-09", "duracion_dias": 378, "tareas": 1109, "avance": 0.03}, "fases": [{"nombre": "DISEÑO Y PLANIFICACIÓN FASE 2", "inicio": "2025-10-29", "fin": "2027-01-18", "duracion_dias": 319, "avance": null, "responsable": "MARS / PERIFERIA", "pos": {"left": 0.0, "width": 0.8462998102466793}}, {"nombre": "ANTEPROYECTO FASE 2", "inicio": "2025-10-29", "fin": "2026-08-05", "duracion_dias": 201, "avance": null, "responsable": "MARS / PERIFERIA", "pos": {"left": 0.0, "width": 0.5313092979127134}}, {"nombre": "URBANIZACIÓN FASE 2", "inicio": "2026-06-11", "fin": "2027-01-18", "duracion_dias": 158, "avance": null, "responsable": "MARS / Especialistas", "pos": {"left": 0.4269449715370019, "width": 0.41935483870967744}}, {"nombre": "TORRE D", "inicio": null, "fin": null, "duracion_dias": null, "avance": null, "responsable": "MARS", "pos": null}, {"nombre": "TORRE E", "inicio": null, "fin": null, "duracion_dias": null, "avance": null, "responsable": "MARS", "pos": null}, {"nombre": "TORRE F", "inicio": null, "fin": null, "duracion_dias": null, "avance": null, "responsable": "MARS", "pos": null}, {"nombre": "TORRE P-2", "inicio": null, "fin": null, "duracion_dias": null, "avance": null, "responsable": "MARS", "pos": null}, {"nombre": "AMENIDADES F-2", "inicio": null, "fin": null, "duracion_dias": null, "avance": null, "responsable": "MARS", "pos": null}, {"nombre": "TRÁMITES (MSPAS · DGAC · MARN · BANCO/FHA)", "inicio": null, "fin": null, "duracion_dias": null, "avance": null, "responsable": "PERIFERIA", "pos": null}], "responsables": {}, "responsables_lista": ["PERIFERIA", "MARS", "GEOESTUDIOS", "WASYMA", "INSEL", "INCCO", "NABLA", "FHA", "MSPAS", "DGAC", "MARN", "MYMA"], "hitos": [{"nombre": "Aprobación de Anteproyecto Fase 2", "fecha": "2026-06-18", "responsable": "MARS / PERIFERIA"}, {"nombre": "Inicio de Planificación con Especialistas", "fecha": "2026-06-19", "responsable": "MARS / PERIFERIA"}, {"nombre": "Validación de estudio de suelos", "fecha": "2026-07-22", "responsable": "GEOESTUDIOS"}, {"nombre": "Primera Homologación de planificación", "fecha": "2026-08-05", "responsable": "MARS / PERIFERIA"}, {"nombre": "Definición de plataformas y movimiento de tierras", "fecha": "2026-10-06", "responsable": "MARS / PERIFERIA"}], "calendario": {"span": 527, "elapsed": 258, "restante": 269, "pct_cal": 0.48956356736242884, "hoy_pos": 0.48956356736242884, "inicio": "2025-10-29", "fin": "2027-04-09"}, "hoy": "14/07/2026", "generado": "14/07/2026 16:22"};
+(function(){
+  const $=id=>document.getElementById(id);
+  const pf=v=>v==null?null:Math.round(v*100);
+  const fmtD=iso=>{if(!iso)return"—";const p=iso.split("-");return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:iso;};
+  const MES=["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
+
+  $("projName").textContent=D.proyecto.nombre||"—";
+  $("corte").textContent="Corte "+(D.corte||"—");
+  $("folder").textContent=D.archivo||"";
+  $("gen").textContent=D.generado||"—";
+  $("fFolder").textContent=D.carpeta||"—";
+  $("fFile").textContent=D.archivo||"—";
+  $("axStart").textContent=fmtD(D.calendario&&D.calendario.inicio);
+  $("axEnd").textContent=fmtD(D.calendario&&D.calendario.fin);
+
+  // badge live / sincronización
+  if(D.sincronizado){
+    $("liveBadge").innerHTML='<span class="live"><span class="dot"></span>Conectado a Teams</span>';
+  }else{
+    $("liveBadge").innerHTML='<span class="live warn"><span class="dot"></span>Vista previa · pendiente de sincronizar</span>';
+    $("syncBanner").innerHTML='<div class="banner"><span>⚙️</span><div><b>Vista previa con datos verificados.</b> El % de avance exacto por fase, las fechas de las torres y la distribución por responsable se completan automáticamente cuando el motor de refresco lee el archivo real de Teams (ver <code>refresh_from_teams.py</code>). La estructura, fechas de fases principales, duración y ventana del proyecto ya son reales.</div></div>';
+  }
+
+  // KPIs
+  const cal=D.calendario||{};
+  const kv=[
+    {l:"Duración del plan",v:(D.proyecto.duracion_dias||"—")+" días",s:"MS Project",cls:"hero"},
+    {l:"Ventana",v:(cal.inicio?fmtD(cal.inicio).slice(3):"—"),s:(fmtD(cal.inicio)+" → "+fmtD(cal.fin)),cls:""},
+    {l:"Tareas totales",v:(D.proyecto.tareas||"—"),s:(D.fases.length+" fases de nivel 2"),cls:""},
+    {l:"Calendario transcurrido",v:(cal.pct_cal!=null?pf(cal.pct_cal)+"%":"—"),s:(cal.elapsed!=null?cal.elapsed+" de "+cal.span+" días":""),cls:"gold"},
+    {l:"Ejecución de tareas",v:(D.proyecto.avance!=null?pf(D.proyecto.avance)+"%":"—"),s:"avance físico",cls:"teal"},
+    {l:"Días restantes",v:(cal.restante!=null?cal.restante:"—"),s:"hasta "+fmtD(cal.fin),cls:"warn"},
+  ];
+  $("kpis").innerHTML=kv.map(k=>`<div class="card kpi ${k.cls}"><div class="kl">${k.l}</div><div class="kv">${k.v}</div><div class="ks">${k.s}</div></div>`).join("");
+
+  // anillos
+  const calP=cal.pct_cal!=null?pf(cal.pct_cal):0;
+  $("ringCal").style.setProperty("--v",calP);$("ringCalTxt").textContent=calP+"%";
+  $("calDias").textContent=(cal.elapsed!=null?cal.elapsed:"—")+" días";
+  $("calSub").textContent=(cal.restante!=null?cal.restante+" días restantes":"");
+  const ejP=D.proyecto.avance!=null?pf(D.proyecto.avance):null;
+  $("ringEjec").style.setProperty("--v",ejP||0);$("ringEjecTxt").textContent=ejP!=null?ejP+"%":"—";
+  $("ejecTxt").textContent=ejP!=null?ejP+"%":"—";
+  if(ejP!=null&&calP!=null){
+    const gap=calP-ejP;
+    $("gapNote").innerHTML=gap>15
+      ? `⚠️ El calendario avanza <b style="color:var(--warn)">${gap} pts</b> por delante de la ejecución física. Riesgo de holgura consumida.`
+      : `El calendario y la ejecución están alineados (brecha ${gap} pts).`;
+  }
+
+  // responsables chart
+  const R=D.responsables||{};const ent=Object.entries(R).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(ent.length){
+    new Chart($("respChart"),{type:"doughnut",data:{labels:ent.map(e=>e[0]),
+      datasets:[{data:ent.map(e=>e[1]),backgroundColor:["#16406e","#1f73c4","#0f9d8c","#c9a227","#67748a","#4a90d9","#2bb3a3","#e0b83a","#8a96a8","#0f2c4d"],borderWidth:2,borderColor:"#fff"}]},
+      options:{plugins:{legend:{position:"right",labels:{boxWidth:11,font:{size:11}}}},cutout:"58%"}});
+  }else{
+    $("respChart").parentElement.innerHTML='<div class="pend" style="padding:24px 4px">Se completa al sincronizar con Teams.</div>';
+    $("respChips").innerHTML=(D.responsables_lista||[]).map(r=>`<span class="chip">${r}</span>`).join("");
+  }
+
+  // timeline (etiqueta HOY solo en la primera fila)
+  const tl=$("timeline");let html="";
+  D.fases.forEach((f,i)=>{
+    let bar;
+    if(f.pos){bar=`<div class="tlbar" style="left:${(f.pos.left*100).toFixed(1)}%;width:${(f.pos.width*100).toFixed(1)}%"></div>`;}
+    else{bar=`<div class="tlpend"></div>`;}
+    const today=cal.hoy_pos!=null?`<div class="tltoday${i===0?' lbl':''}" style="left:${(cal.hoy_pos*100).toFixed(1)}%"></div>`:"";
+    html+=`<div class="tlrow"><div class="tlname" title="${f.nombre}">${f.nombre}</div><div class="tltrack">${bar}${today}</div></div>`;
+  });
+  tl.innerHTML=html;
+
+  // tabla fases
+  $("fasesBody").innerHTML=D.fases.map(f=>{
+    const a=f.avance!=null?pf(f.avance):null;
+    const av=a!=null?`<span class="minibar"><i style="width:${a}%"></i></span><b>${a}%</b>`:`<span class="pend">sincroniza</span>`;
+    return `<tr><td class="ph">${f.nombre}</td><td>${f.responsable?`<span class="resp">${f.responsable}</span>`:"—"}</td><td>${fmtD(f.inicio)}</td><td>${fmtD(f.fin)}</td><td>${f.duracion_dias?f.duracion_dias+" d":"—"}</td><td>${av}</td></tr>`;
+  }).join("");
+
+  // hitos
+  const today=new Date();
+  $("hitos").innerHTML=(D.hitos||[]).map(h=>{
+    const p=h.fecha.split("-");const dd=p[2],mm=MES[parseInt(p[1],10)-1];
+    const dias=Math.round((new Date(h.fecha)-today)/86400000);
+    const et=dias<0?"vencido":dias===0?"hoy":`en ${dias} días`;
+    return `<div class="hito"><div class="hdate"><div class="d">${dd}</div><div class="m">${mm}</div></div><div class="hbody"><div class="hn">${h.nombre}</div><div class="hr">${h.responsable||""}</div></div><div class="hdias">${et}</div></div>`;
+  }).join("")||'<div class="pend">Sin hitos próximos.</div>';
+})();
+</script>
+</body>
+</html>

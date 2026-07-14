@@ -1,3 +1,17 @@
+# Dashboards · Boulevard Sur Club Residencial
+
+## 🟦 Dashboard PMO de Planificación (conectado a Teams) — `dashboard.html`
+Tablero de seguimiento de la **Fase 2** que se **actualiza solo** desde la carpeta de Teams
+`PLANIFICACION › 01. PLANNER › FASE 2 › 02. Seguimiento Semanal`, tomando el archivo con la
+**fecha más cercana a hoy**. Muestra: avance de calendario vs. ejecución, cronograma por fase
+con marcador HOY, tabla de fases, hitos/homologaciones próximas y distribución por responsable.
+
+- **Generar/probar:** `python3 build_dashboard.py [archivo.xlsx]` (sin argumento usa datos de semilla).
+- **Auto-actualización + link para Teams:** ver **[`SETUP-TEAMS.md`](SETUP-TEAMS.md)**
+  (`refresh_from_teams.py` + GitHub Actions + GitHub Pages).
+
+---
+
 # Dashboard Financiero · Boulevard Sur Club Residencial
 
 Dashboard interactivo (un solo archivo HTML) construido sobre los **datos reales del archivo maestro**
