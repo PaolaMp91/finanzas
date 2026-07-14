@@ -1,0 +1,88 @@
+name: Actualizar dashboard PMO desde Teams
+
+# Regenera dashboard.html tomando el archivo de "Seguimiento Semanal" con la
+# fecha más cercana a hoy, lo publica en GitHub Pages y guarda el snapshot.
+#
+# Requiere estos Secrets del repositorio (Settings › Secrets and variables › Actions):
+#   AZURE_TENANT_ID · AZURE_CLIENT_ID · AZURE_CLIENT_SECRET
+# La app de Azure necesita el permiso de aplicación Sites.Read.All (solo lectura)
+# con consentimiento de administrador.
+
+on:
+  schedule:
+    - cron: '0 12 * * *'          # todos los días 12:00 UTC (06:00 Guatemala)
+  workflow_dispatch:              # permite ejecutarlo a mano desde la pestaña Actions
+  push:
+    branches: [ main ]
+    paths:
+      - 'build_dashboard.py'
+      - 'refresh_from_teams.py'
+      - '.github/workflows/refresh-dashboard.yml'
+
+permissions:
+  contents: write                 # para guardar el snapshot regenerado
+  pages: write                    # para publicar en GitHub Pages
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: pip install openpyxl
+
+      - name: Regenerar dashboard desde Teams
+        env:
+          AZURE_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        run: |
+          if [ -z "$AZURE_TENANT_ID" ]; then
+            echo "::warning::Faltan los Secrets de Azure. Genero vista previa con datos de semilla."
+            python3 build_dashboard.py
+          else
+            python3 refresh_from_teams.py
+          fi
+
+      - name: Guardar snapshot si cambió
+        run: |
+          git config user.name  "pmo-dashboard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if ! git diff --quiet -- dashboard.html; then
+            git add dashboard.html
+            git commit -m "chore(pmo): actualizar dashboard ($(date -u +%Y-%m-%d))"
+            git push
+          else
+            echo "Sin cambios en dashboard.html"
+          fi
+
+      - name: Preparar sitio para Pages
+        run: |
+          mkdir -p _site
+          cp index.html matriz.html brief.html dashboard.html _site/ 2>/dev/null || true
+          # dashboard PMO como página de inicio del sitio publicado
+          cp dashboard.html _site/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
