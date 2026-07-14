@@ -46,11 +46,27 @@ def _http_json(url, data=None, headers=None):
         return json.loads(r.read().decode())
 
 
+def _clean(name):
+    """lee un secreto y le quita espacios/comillas/saltos de línea accidentales."""
+    return (os.environ.get(name, "") or "").strip().strip('"').strip("'").strip()
+
 def get_token():
-    tenant = os.environ["AZURE_TENANT_ID"]
+    tenant = _clean("AZURE_TENANT_ID")
+    client_id = _clean("AZURE_CLIENT_ID")
+    client_secret = _clean("AZURE_CLIENT_SECRET")
+    # Validaciones con mensajes claros (el tenant y el client deben ser GUID).
+    guid = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+                      r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+    if not guid.match(tenant):
+        sys.exit("[error] AZURE_TENANT_ID no parece un Id. de directorio (inquilino) válido. "
+                 "Debe ser un GUID como 'a1b2c3d4-e5f6-7890-abcd-1234567890ab' "
+                 "(el 'Id. de directorio (inquilino)' de Azure), NO el nombre de la organización.")
+    if not guid.match(client_id):
+        sys.exit("[error] AZURE_CLIENT_ID no parece un Id. de aplicación (cliente) válido. "
+                 "Debe ser un GUID (el 'Id. de aplicación (cliente)' de Azure).")
     body = urllib.parse.urlencode({
-        "client_id":     os.environ["AZURE_CLIENT_ID"],
-        "client_secret": os.environ["AZURE_CLIENT_SECRET"],
+        "client_id":     client_id,
+        "client_secret": client_secret,
         "scope":         "https://graph.microsoft.com/.default",
         "grant_type":    "client_credentials",
     }).encode()
