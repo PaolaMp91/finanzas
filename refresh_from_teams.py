@@ -54,16 +54,23 @@ def get_token():
     tenant = _clean("AZURE_TENANT_ID")
     client_id = _clean("AZURE_CLIENT_ID")
     client_secret = _clean("AZURE_CLIENT_SECRET")
-    # Validaciones con mensajes claros (el tenant y el client deben ser GUID).
+    # Validaciones con mensajes claros. El tenant acepta GUID o dominio
+    # (p.ej. periferiaurbana.onmicrosoft.com); el client debe ser GUID.
     guid = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
                       r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-    if not guid.match(tenant):
-        sys.exit("[error] AZURE_TENANT_ID no parece un Id. de directorio (inquilino) válido. "
-                 "Debe ser un GUID como 'a1b2c3d4-e5f6-7890-abcd-1234567890ab' "
-                 "(el 'Id. de directorio (inquilino)' de Azure), NO el nombre de la organización.")
+    domain = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Za-z]{2,}$")
+    def diag(v):
+        return (f"[diagnóstico sin exponer el valor: {len(v)} caracteres, "
+                f"con espacio={'SÍ' if any(c.isspace() for c in v) else 'no'}, "
+                f"con punto={'sí' if '.' in v else 'no'}, "
+                f"empieza con='{(v[:1] or '∅')}']")
+    if not (guid.match(tenant) or domain.match(tenant)):
+        sys.exit("[error] AZURE_TENANT_ID inválido. Debe ser el 'Id. de directorio (inquilino)' "
+                 "(GUID como a1b2c3d4-e5f6-7890-abcd-1234567890ab) o el dominio "
+                 "(p.ej. periferiaurbana.onmicrosoft.com), sin espacios. " + diag(tenant))
     if not guid.match(client_id):
-        sys.exit("[error] AZURE_CLIENT_ID no parece un Id. de aplicación (cliente) válido. "
-                 "Debe ser un GUID (el 'Id. de aplicación (cliente)' de Azure).")
+        sys.exit("[error] AZURE_CLIENT_ID inválido: debe ser el 'Id. de aplicación (cliente)' "
+                 "(GUID). " + diag(client_id))
     body = urllib.parse.urlencode({
         "client_id":     client_id,
         "client_secret": client_secret,
