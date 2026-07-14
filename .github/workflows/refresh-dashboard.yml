@@ -13,7 +13,7 @@ on:
     - cron: '0 12 * * *'          # todos los días 12:00 UTC (06:00 Guatemala)
   workflow_dispatch:              # permite ejecutarlo a mano desde la pestaña Actions
   push:
-    branches: [ main ]
+    branches: [ claude/brave-ride-00jkwm ]   # rama por defecto del repo
     paths:
       - 'build_dashboard.py'
       - 'refresh_from_teams.py'
