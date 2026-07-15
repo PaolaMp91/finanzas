@@ -27,7 +27,7 @@ con consentimiento de administrador. Es de SOLO LECTURA.
 Uso:
     python3 refresh_from_teams.py
 """
-import os, re, sys, datetime, urllib.request, urllib.parse, json
+import os, re, sys, datetime, urllib.request, urllib.parse, urllib.error, json
 
 import build_dashboard  # reutiliza extract_from_xlsx / enrich / render
 
@@ -78,8 +78,30 @@ def get_token():
         "grant_type":    "client_credentials",
     }).encode()
     url = f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
-    tok = _http_json(url, data=body,
-                     headers={"Content-Type": "application/x-www-form-urlencoded"})
+    try:
+        tok = _http_json(url, data=body,
+                         headers={"Content-Type": "application/x-www-form-urlencoded"})
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "replace")
+        try:
+            j = json.loads(detail)
+            code = j.get("error", "")
+            desc = (j.get("error_description", "") or "").split("\r\n")[0]
+        except Exception:
+            code, desc = "", detail[:300]
+        hint = ""
+        if "7000215" in detail:
+            hint = ("→ El CLIENT SECRET es incorrecto. En Azure, "
+                    "'Certificados y secretos', copia el campo 'Valor' del secreto "
+                    "(NO el 'Id. del secreto') y actualízalo en AZURE_CLIENT_SECRET.")
+        elif "7000222" in detail:
+            hint = "→ El client secret EXPIRÓ. Crea uno nuevo en Azure y actualiza AZURE_CLIENT_SECRET."
+        elif "700016" in detail:
+            hint = "→ La app no existe en este tenant: revisa AZURE_CLIENT_ID y AZURE_TENANT_ID."
+        elif "900023" in detail or "90002" in detail:
+            hint = "→ El tenant no es válido: revisa AZURE_TENANT_ID."
+        sys.exit(f"[error] Azure rechazó la autenticación (HTTP {e.code}). "
+                 f"{code}: {desc} {hint}")
     return tok["access_token"]
 
 
