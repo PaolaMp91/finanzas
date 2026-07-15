@@ -234,21 +234,52 @@ def extract_from_xlsx(path):
                 "responsable": " · ".join(resp[:3]) if resp else "Sin asignar",
             })
 
-    # ---- tareas ATRASADAS: hojas con fin < hoy y avance < 100% ----------------
-    atrasadas = []
+    # ---- tareas ATRASADAS -----------------------------------------------------
+    #  vencida : hoja con fin < hoy y avance < 100%  -> días vencidos
+    #  encurso : hoja en curso (inicio <= hoy < fin) con avance < esperado (>10 pts)
+    #            -> días de trabajo por detrás del calendario
+    crudas = []
     for i, t in enumerate(T):
         if not is_leaf(i):
             continue
         pct = t["pct"] or 0.0
-        if t["d1"] and t["d1"] < today and pct < 0.999:
-            atrasadas.append({
-                "nombre": t["name"],
-                "responsable": t["res"] or "⚠ Sin asignar",
-                "fin": t["d1"].isoformat(),
-                "avance": pct,
-                "dias": (today - t["d1"]).days,
-            })
+        d0, d1, dur = t["d0"], t["d1"], t["dur"]
+        if d1 and d1 < today and pct < 0.999:
+            crudas.append({"nombre": t["name"], "res": t["res"], "fin": d1.isoformat(),
+                           "avance": pct, "dias": (today - d1).days, "tipo": "vencida"})
+        elif d0 and d1 and d0 <= today < d1 and dur:
+            esp = (today - d0).days / (d1 - d0).days
+            if esp - pct > 0.10:
+                crudas.append({"nombre": t["name"], "res": t["res"], "fin": d1.isoformat(),
+                               "avance": pct, "dias": int(round((esp - pct) * dur)),
+                               "tipo": "encurso"})
+
+    # agrupar repetidas por nombre (MS Project las lista por torre/especialidad)
+    grupos = {}
+    for a in crudas:
+        g = grupos.get(a["nombre"])
+        if not g:
+            g = grupos[a["nombre"]] = {"nombre": a["nombre"], "n": 0, "dias": 0,
+                                       "avance": 1.0, "resset": [], "fin": a["fin"],
+                                       "tipo": a["tipo"]}
+        g["n"] += 1
+        if a["dias"] > g["dias"]:
+            g["dias"] = a["dias"]; g["fin"] = a["fin"]
+        g["avance"] = min(g["avance"], a["avance"])
+        if a["tipo"] == "vencida":
+            g["tipo"] = "vencida"
+        for r in re.split(r"[,;/]", a["res"] or ""):
+            r = r.strip()
+            if r and r not in g["resset"]:
+                g["resset"].append(r)
+    atrasadas = []
+    for g in grupos.values():
+        atrasadas.append({"nombre": g["nombre"], "n": g["n"], "dias": g["dias"],
+                          "avance": g["avance"], "fin": g["fin"], "tipo": g["tipo"],
+                          "responsable": " · ".join(g["resset"][:3]) if g["resset"] else "⚠ Sin asignar"})
     atrasadas.sort(key=lambda a: a["dias"], reverse=True)
+    n_venc = sum(1 for a in atrasadas if a["tipo"] == "vencida")
+    n_curso = len(atrasadas) - n_venc
 
     # ---- hitos: tareas de 0-1 día a futuro con nombre de gate -----------------
     hitos = []
@@ -278,6 +309,8 @@ def extract_from_xlsx(path):
         "responsables_lista": sorted(responsables) or SEED["responsables_lista"],
         "sin_responsable": sin_resp,
         "atrasadas": atrasadas,
+        "atrasadas_venc": n_venc,
+        "atrasadas_curso": n_curso,
         "hitos": hitos,
     }
 
@@ -383,6 +416,9 @@ TEMPLATE = r"""<!DOCTYPE html>
   .atr td .rp{display:inline-block;font-size:10.5px;font-weight:700;color:#9a3d16;background:#fdeee6;border:1px solid #f4cbb4;padding:2px 8px;border-radius:20px}
   .atr td .rp.no{color:var(--bad);background:#fbe9e9;border-color:#f2c4c4}
   .atr .dd{color:var(--bad);font-weight:800}
+  .tg{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:1px 7px;border-radius:20px;margin-right:7px;vertical-align:middle}
+  .tg.venc{color:#fff;background:var(--bad)}.tg.curso{color:#8a5a12;background:#fbe6c2;border:1px solid #eccf98}
+  .cnt{display:inline-block;font-size:10px;font-weight:800;color:var(--muted);background:#eef2f7;border:1px solid var(--line);padding:1px 7px;border-radius:20px;margin-left:7px}
   /* progreso circular */
   .gauge{display:flex;align-items:center;gap:16px}
   .ring{--v:0;--c:var(--gold);width:92px;height:92px;border-radius:50%;flex:0 0 auto;
@@ -618,18 +654,24 @@ TEMPLATE = r"""<!DOCTYPE html>
   });
   tl.innerHTML=html;
 
-  // tareas atrasadas
+  // tareas atrasadas (agrupadas · vencida vs en curso)
   const atr=D.atrasadas||[];
-  $("atrHint").textContent=atr.length?`${atr.length} vencidas y sin terminar`:"ninguna 🎉";
+  $("atrHint").textContent=atr.length
+    ? `${atr.length} atrasadas — ${D.atrasadas_venc||0} vencidas · ${D.atrasadas_curso||0} en curso`
+    : "ninguna 🎉";
   $("atrBody").innerHTML=atr.slice(0,25).map(a=>{
     const p=pf(a.avance);
     const noResp=/sin asignar/i.test(a.responsable);
-    return `<tr><td class="ph">${a.nombre}</td><td><span class="rp${noResp?' no':''}">${a.responsable}</span></td><td>${fmtD(a.fin)}</td><td>${p}%</td><td class="dd">${a.dias} d</td></tr>`;
+    const tag=a.tipo==="vencida"?'<span class="tg venc">vencida</span>':'<span class="tg curso">en curso</span>';
+    const cnt=a.n>1?`<span class="cnt">×${a.n}</span>`:"";
+    const dd=a.tipo==="vencida"?`${a.dias} d venc.`:`${a.dias} d detrás`;
+    return `<tr><td class="ph">${tag}${a.nombre}${cnt}</td><td><span class="rp${noResp?' no':''}">${a.responsable}</span></td><td>${fmtD(a.fin)}</td><td>${p}%</td><td class="dd">${dd}</td></tr>`;
   }).join("")||'<tr><td colspan="5" style="text-align:center;color:var(--good);padding:16px">Sin tareas atrasadas.</td></tr>';
   const notes=[];
-  if(atr.length>25) notes.push(`Mostrando las 25 más atrasadas de ${atr.length}.`);
+  if(atr.length>25) notes.push(`Mostrando las 25 más atrasadas de ${atr.length} grupos.`);
+  notes.push('“vencida” = fin pasado sin terminar · “en curso” = avance por debajo del esperado · ×N = tareas repetidas agrupadas.');
   if(D.sin_responsable) notes.push(`${D.sin_responsable} tarea${D.sin_responsable==1?"":"s"} del plan ${D.sin_responsable==1?"no tiene":"no tienen"} responsable asignado.`);
-  $("atrNote").textContent=notes.join("  ·  ");
+  $("atrNote").innerHTML=notes.join("  ·  ");
 
   // tabla fases (avance real vs esperado / línea base)
   $("fasesBody").innerHTML=D.fases.map(f=>{
