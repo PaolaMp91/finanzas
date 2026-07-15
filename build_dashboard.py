@@ -152,70 +152,132 @@ def extract_from_xlsx(path):
         j = ci[key]
         return row[j] if (j is not None and j < len(row)) else None
 
-    proj = None
-    fases = []
-    responsables = {}
-    hitos = []
-    n_tareas = 0
     today = datetime.date.today()
 
+    # ---- 1ª pasada: recoger TODAS las tareas en una lista ---------------------
+    T = []
     for row in data:
         name = cell(row, "name")
         if not name or not str(name).strip():
             continue
-        name = str(name).strip()
-        n_tareas += 1
         lvl = cell(row, "lvl")
         try:
             lvl = int(lvl) if lvl is not None else None
         except (ValueError, TypeError):
             lvl = None
-        pct = _pct(cell(row, "pct"))
-        d0 = _to_date(cell(row, "start"))
-        d1 = _to_date(cell(row, "finish"))
-        dur = _dur_days(cell(row, "dur"))
         res = cell(row, "res")
+        res = str(res).strip() if res else ""
+        T.append({
+            "name": str(name).strip(), "lvl": lvl,
+            "pct": _pct(cell(row, "pct")),
+            "d0": _to_date(cell(row, "start")),
+            "d1": _to_date(cell(row, "finish")),
+            "dur": _dur_days(cell(row, "dur")),
+            "res": res,
+        })
+    n = len(T)
 
-        # conteo por responsable
-        if res:
-            for r in re.split(r"[,;/]", str(res)):
+    def is_leaf(i):
+        """hoja = la siguiente tarea NO es hija (nivel <= al actual)."""
+        if i == n - 1:
+            return True
+        a, b = T[i]["lvl"], T[i + 1]["lvl"]
+        if a is None or b is None:
+            return bool(T[i]["res"])   # respaldo: con recurso se asume hoja
+        return b <= a
+
+    def rollup_res(i0, i1):
+        """responsables distintos de las hojas dentro del rango [i0, i1)."""
+        seen = []
+        for k in range(i0, i1):
+            if is_leaf(k) and T[k]["res"]:
+                for r in re.split(r"[,;/]", T[k]["res"]):
+                    r = r.strip()
+                    if r and r not in seen:
+                        seen.append(r)
+        return seen
+
+    # ---- conteos por responsable (solo hojas, para no duplicar resúmenes) -----
+    responsables = {}
+    sin_resp = 0
+    for i, t in enumerate(T):
+        if not is_leaf(i):
+            continue
+        if t["res"]:
+            for r in re.split(r"[,;/]", t["res"]):
                 r = r.strip()
                 if r:
                     responsables[r] = responsables.get(r, 0) + 1
+        else:
+            sin_resp += 1
 
-        # proyecto (nivel 1)
-        if lvl == 1 and proj is None:
-            proj = {"nombre": name, "inicio": d0.isoformat() if d0 else None,
-                    "fin": d1.isoformat() if d1 else None, "duracion_dias": dur,
-                    "avance": pct}
-        # fases (nivel 2)
-        elif lvl == 2:
-            fases.append({"nombre": name, "inicio": d0.isoformat() if d0 else None,
-                          "fin": d1.isoformat() if d1 else None, "duracion_dias": dur,
-                          "avance": pct, "responsable": str(res).strip() if res else ""})
-        # hitos: tareas de 0-1 día a futuro con nombre de gate
-        if dur is not None and dur <= 1 and d1 and d1 >= today:
-            if re.search(r"homolog|aprob|entrega|inicio|validac|revision|desembolso", name, re.I):
-                hitos.append({"nombre": name, "fecha": d1.isoformat(),
-                              "responsable": str(res).strip() if res else ""})
+    # ---- proyecto (nivel 1) y fases (nivel 2) con responsable heredado --------
+    proj = None
+    fases = []
+    for i, t in enumerate(T):
+        if t["lvl"] == 1 and proj is None:
+            resp = rollup_res(i, n)
+            proj = {"nombre": t["name"], "inicio": t["d0"].isoformat() if t["d0"] else None,
+                    "fin": t["d1"].isoformat() if t["d1"] else None,
+                    "duracion_dias": t["dur"], "avance": t["pct"]}
+        elif t["lvl"] == 2:
+            # rango de la fase: hasta la siguiente tarea de nivel <= 2
+            j = i + 1
+            while j < n and (T[j]["lvl"] is None or T[j]["lvl"] > 2):
+                j += 1
+            resp = rollup_res(i, j) or ([t["res"]] if t["res"] else [])
+            fases.append({
+                "nombre": t["name"],
+                "inicio": t["d0"].isoformat() if t["d0"] else None,
+                "fin": t["d1"].isoformat() if t["d1"] else None,
+                "duracion_dias": t["dur"], "avance": t["pct"],
+                "responsable": " · ".join(resp[:3]) if resp else "Sin asignar",
+            })
 
+    # ---- tareas ATRASADAS: hojas con fin < hoy y avance < 100% ----------------
+    atrasadas = []
+    for i, t in enumerate(T):
+        if not is_leaf(i):
+            continue
+        pct = t["pct"] or 0.0
+        if t["d1"] and t["d1"] < today and pct < 0.999:
+            atrasadas.append({
+                "nombre": t["name"],
+                "responsable": t["res"] or "⚠ Sin asignar",
+                "fin": t["d1"].isoformat(),
+                "avance": pct,
+                "dias": (today - t["d1"]).days,
+            })
+    atrasadas.sort(key=lambda a: a["dias"], reverse=True)
+
+    # ---- hitos: tareas de 0-1 día a futuro con nombre de gate -----------------
+    hitos = []
+    for i, t in enumerate(T):
+        if t["dur"] is not None and t["dur"] <= 1 and t["d1"] and t["d1"] >= today and \
+           re.search(r"homolog|aprob|entrega|inicio|validac|revision|desembolso", t["name"], re.I):
+            hitos.append({"nombre": t["name"], "fecha": t["d1"].isoformat(),
+                          "responsable": t["res"] or "Sin asignar"})
     hitos = sorted(hitos, key=lambda h: h["fecha"])[:8]
+
     if proj is None:
         proj = {"nombre": "PROGRAMA DE PLANIFICACIÓN FASE 2", "inicio": None,
-                "fin": None, "duracion_dias": None, "avance": None, "tareas": n_tareas}
-    proj["tareas"] = n_tareas
+                "fin": None, "duracion_dias": None, "avance": None}
+    proj["tareas"] = n
 
     # fecha de corte a partir del nombre del archivo
     fname = os.path.basename(path)
     m = re.search(r"(\d{1,2})[ _\-]+(\d{1,2})[ _\-]+(\d{4})", fname)
     corte = f"{int(m.group(1)):02d}/{int(m.group(2)):02d}/{m.group(3)}" if m else \
-            datetime.date.today().strftime("%d/%m/%Y")
+            today.strftime("%d/%m/%Y")
 
     return {
         "corte": corte, "archivo": fname, "sincronizado": True,
         "carpeta": SEED["carpeta"],
         "proyecto": proj, "fases": fases,
-        "responsables": responsables, "responsables_lista": sorted(responsables) or SEED["responsables_lista"],
+        "responsables": responsables,
+        "responsables_lista": sorted(responsables) or SEED["responsables_lista"],
+        "sin_responsable": sin_resp,
+        "atrasadas": atrasadas,
         "hitos": hitos,
     }
 
@@ -236,7 +298,22 @@ def enrich(data):
             "hoy_pos": max(0.0, min(1.0, (today - s).days / span)),
             "inicio": s.isoformat(), "fin": e.isoformat(),
         }
-    # posiciones de barras de fase sobre la ventana del proyecto
+    def esperado(a, b):
+        """avance esperado por calendario (línea base) entre fechas a y b."""
+        if not a or not b or b <= a:
+            return None
+        if today <= a:
+            return 0.0
+        if today >= b:
+            return 1.0
+        return (today - a).days / (b - a).days
+
+    # avance esperado del proyecto (línea base global)
+    p["esperado"] = esperado(s, e)
+    if p.get("avance") is not None and p.get("esperado") is not None:
+        p["desvio"] = p["avance"] - p["esperado"]
+
+    # posiciones de barras + esperado/desvío por fase
     for f in data["fases"]:
         f["pos"] = None
         fs = _to_date(f.get("inicio")); fe = _to_date(f.get("fin"))
@@ -244,9 +321,15 @@ def enrich(data):
             span = (e - s).days
             f["pos"] = {"left": max(0.0, (fs - s).days / span),
                         "width": max(0.012, (fe - fs).days / span)}
+        f["esperado"] = esperado(fs, fe)
+        f["desvio"] = (f["avance"] - f["esperado"]) \
+            if (f.get("avance") is not None and f.get("esperado") is not None) else None
+
     data["calendario"] = cal
     data["hoy"] = today.strftime("%d/%m/%Y")
     data["generado"] = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+    data.setdefault("atrasadas", [])
+    data.setdefault("sin_responsable", 0)
     return data
 
 # --------------------------------------------------------------------------- #
@@ -295,7 +378,11 @@ TEMPLATE = r"""<!DOCTYPE html>
   .kpi .ks{color:var(--soft);font-size:11.5px;margin-top:5px}
   .kpi.hero{background:linear-gradient(150deg,var(--navy),var(--navy2));border:none}
   .kpi.hero .kl{color:#a9c2e0}.kpi.hero .kv{color:#fff}.kpi.hero .ks{color:#94aece}
-  .kpi.gold .kv{color:var(--gold)}.kpi.teal .kv{color:var(--teal)}.kpi.warn .kv{color:var(--warn)}
+  .kpi.gold .kv{color:var(--gold)}.kpi.teal .kv{color:var(--teal)}.kpi.warn .kv{color:var(--warn)}.kpi.bad .kv{color:var(--bad)}
+  .dev{font-weight:700}.dev.neg{color:var(--bad)}.dev.pos{color:var(--good)}
+  .atr td .rp{display:inline-block;font-size:10.5px;font-weight:700;color:#9a3d16;background:#fdeee6;border:1px solid #f4cbb4;padding:2px 8px;border-radius:20px}
+  .atr td .rp.no{color:var(--bad);background:#fbe9e9;border-color:#f2c4c4}
+  .atr .dd{color:var(--bad);font-weight:800}
   /* progreso circular */
   .gauge{display:flex;align-items:center;gap:16px}
   .ring{--v:0;--c:var(--gold);width:92px;height:92px;border-radius:50%;flex:0 0 auto;
@@ -417,12 +504,24 @@ TEMPLATE = r"""<!DOCTYPE html>
       </div>
     </section>
 
+    <!-- Tareas atrasadas -->
+    <section>
+      <h2 class="sec">Tareas atrasadas <span class="hint" id="atrHint">—</span></h2>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="atr">
+          <thead><tr><th>Tarea</th><th>Responsable</th><th>Fin planeado</th><th>Avance</th><th>Días de atraso</th></tr></thead>
+          <tbody id="atrBody"></tbody>
+        </table>
+      </div>
+      <div class="note" id="atrNote"></div>
+    </section>
+
     <!-- Tabla de fases -->
     <section>
-      <h2 class="sec">Fases de planificación</h2>
+      <h2 class="sec">Fases de planificación <span class="hint">Avance real vs. esperado por calendario (línea base)</span></h2>
       <div class="card" style="padding:0;overflow:hidden">
         <table>
-          <thead><tr><th>Fase</th><th>Responsable</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Avance</th></tr></thead>
+          <thead><tr><th>Fase</th><th>Responsable</th><th>Inicio</th><th>Fin</th><th>Avance</th><th>Esperado</th><th>Desvío</th></tr></thead>
           <tbody id="fasesBody"></tbody>
         </table>
       </div>
@@ -467,13 +566,14 @@ TEMPLATE = r"""<!DOCTYPE html>
 
   // KPIs
   const cal=D.calendario||{};
+  const desP=D.proyecto.desvio!=null?pf(D.proyecto.desvio):null;
   const kv=[
-    {l:"Duración del plan",v:(D.proyecto.duracion_dias||"—")+" días",s:"MS Project",cls:"hero"},
-    {l:"Ventana",v:(cal.inicio?fmtD(cal.inicio).slice(3):"—"),s:(fmtD(cal.inicio)+" → "+fmtD(cal.fin)),cls:""},
-    {l:"Tareas totales",v:(D.proyecto.tareas||"—"),s:(D.fases.length+" fases de nivel 2"),cls:""},
+    {l:"Duración del plan",v:(D.proyecto.duracion_dias||"—")+" días",s:(D.proyecto.tareas||"—")+" tareas",cls:"hero"},
     {l:"Calendario transcurrido",v:(cal.pct_cal!=null?pf(cal.pct_cal)+"%":"—"),s:(cal.elapsed!=null?cal.elapsed+" de "+cal.span+" días":""),cls:"gold"},
-    {l:"Ejecución de tareas",v:(D.proyecto.avance!=null?pf(D.proyecto.avance)+"%":"—"),s:"avance físico",cls:"teal"},
-    {l:"Días restantes",v:(cal.restante!=null?cal.restante:"—"),s:"hasta "+fmtD(cal.fin),cls:"warn"},
+    {l:"Ejecución de tareas",v:(D.proyecto.avance!=null?pf(D.proyecto.avance)+"%":"—"),s:"avance físico real",cls:"teal"},
+    {l:"Avance esperado (línea base)",v:(D.proyecto.esperado!=null?pf(D.proyecto.esperado)+"%":"—"),s:"lo que debería llevar hoy",cls:""},
+    {l:"Desvío vs línea base",v:(desP!=null?(desP>0?"+":"")+desP+" pts":"—"),s:(desP!=null&&desP<0?"por debajo de lo planeado":"según plan"),cls:"warn"},
+    {l:"Tareas atrasadas",v:(D.atrasadas?D.atrasadas.length:0),s:(D.sin_responsable?D.sin_responsable+" sin responsable":"vencidas sin terminar"),cls:"bad"},
   ];
   $("kpis").innerHTML=kv.map(k=>`<div class="card kpi ${k.cls}"><div class="kl">${k.l}</div><div class="kv">${k.v}</div><div class="ks">${k.s}</div></div>`).join("");
 
@@ -492,16 +592,20 @@ TEMPLATE = r"""<!DOCTYPE html>
       : `El calendario y la ejecución están alineados (brecha ${gap} pts).`;
   }
 
-  // responsables chart
+  // responsables chart (blindado: si Chart.js no carga, muestra chips y NO rompe el resto)
   const R=D.responsables||{};const ent=Object.entries(R).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  if(ent.length){
-    new Chart($("respChart"),{type:"doughnut",data:{labels:ent.map(e=>e[0]),
-      datasets:[{data:ent.map(e=>e[1]),backgroundColor:["#16406e","#1f73c4","#0f9d8c","#c9a227","#67748a","#4a90d9","#2bb3a3","#e0b83a","#8a96a8","#0f2c4d"],borderWidth:2,borderColor:"#fff"}]},
-      options:{plugins:{legend:{position:"right",labels:{boxWidth:11,font:{size:11}}}},cutout:"58%"}});
-  }else{
-    $("respChart").parentElement.innerHTML='<div class="pend" style="padding:24px 4px">Se completa al sincronizar con Teams.</div>';
-    $("respChips").innerHTML=(D.responsables_lista||[]).map(r=>`<span class="chip">${r}</span>`).join("");
+  function respChips(){
+    const src=ent.length?ent.map(e=>`${e[0]} (${e[1]})`):(D.responsables_lista||[]);
+    $("respChart").parentElement.innerHTML=ent.length?"":'<div class="pend" style="padding:20px 4px">Se completa al sincronizar con Teams.</div>';
+    $("respChips").innerHTML=src.map(r=>`<span class="chip">${r}</span>`).join("");
   }
+  try{
+    if(ent.length && typeof Chart!=="undefined"){
+      new Chart($("respChart"),{type:"doughnut",data:{labels:ent.map(e=>e[0]),
+        datasets:[{data:ent.map(e=>e[1]),backgroundColor:["#16406e","#1f73c4","#0f9d8c","#c9a227","#67748a","#4a90d9","#2bb3a3","#e0b83a","#8a96a8","#0f2c4d"],borderWidth:2,borderColor:"#fff"}]},
+        options:{plugins:{legend:{position:"right",labels:{boxWidth:11,font:{size:11}}}},cutout:"58%"}});
+    }else{ respChips(); }
+  }catch(e){ respChips(); }
 
   // timeline (etiqueta HOY solo en la primera fila)
   const tl=$("timeline");let html="";
@@ -514,11 +618,27 @@ TEMPLATE = r"""<!DOCTYPE html>
   });
   tl.innerHTML=html;
 
-  // tabla fases
+  // tareas atrasadas
+  const atr=D.atrasadas||[];
+  $("atrHint").textContent=atr.length?`${atr.length} vencidas y sin terminar`:"ninguna 🎉";
+  $("atrBody").innerHTML=atr.slice(0,25).map(a=>{
+    const p=pf(a.avance);
+    const noResp=/sin asignar/i.test(a.responsable);
+    return `<tr><td class="ph">${a.nombre}</td><td><span class="rp${noResp?' no':''}">${a.responsable}</span></td><td>${fmtD(a.fin)}</td><td>${p}%</td><td class="dd">${a.dias} d</td></tr>`;
+  }).join("")||'<tr><td colspan="5" style="text-align:center;color:var(--good);padding:16px">Sin tareas atrasadas.</td></tr>';
+  const notes=[];
+  if(atr.length>25) notes.push(`Mostrando las 25 más atrasadas de ${atr.length}.`);
+  if(D.sin_responsable) notes.push(`${D.sin_responsable} tarea${D.sin_responsable==1?"":"s"} del plan ${D.sin_responsable==1?"no tiene":"no tienen"} responsable asignado.`);
+  $("atrNote").textContent=notes.join("  ·  ");
+
+  // tabla fases (avance real vs esperado / línea base)
   $("fasesBody").innerHTML=D.fases.map(f=>{
     const a=f.avance!=null?pf(f.avance):null;
     const av=a!=null?`<span class="minibar"><i style="width:${a}%"></i></span><b>${a}%</b>`:`<span class="pend">sincroniza</span>`;
-    return `<tr><td class="ph">${f.nombre}</td><td>${f.responsable?`<span class="resp">${f.responsable}</span>`:"—"}</td><td>${fmtD(f.inicio)}</td><td>${fmtD(f.fin)}</td><td>${f.duracion_dias?f.duracion_dias+" d":"—"}</td><td>${av}</td></tr>`;
+    const esp=f.esperado!=null?pf(f.esperado)+"%":"—";
+    let dev="—";
+    if(f.desvio!=null){const d=pf(f.desvio);dev=`<span class="dev ${d<0?'neg':'pos'}">${d>0?'+':''}${d} pts</span>`;}
+    return `<tr><td class="ph">${f.nombre}</td><td>${f.responsable?`<span class="resp">${f.responsable}</span>`:'<span class="resp">Sin asignar</span>'}</td><td>${fmtD(f.inicio)}</td><td>${fmtD(f.fin)}</td><td>${av}</td><td>${esp}</td><td>${dev}</td></tr>`;
   }).join("");
 
   // hitos
