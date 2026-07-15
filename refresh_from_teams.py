@@ -63,6 +63,7 @@ def get_token():
         return (f"[diagnóstico sin exponer el valor: {len(v)} caracteres, "
                 f"con espacio={'SÍ' if any(c.isspace() for c in v) else 'no'}, "
                 f"con punto={'sí' if '.' in v else 'no'}, "
+                f"con ~={'sí' if '~' in v else 'no'}, "
                 f"empieza con='{(v[:1] or '∅')}']")
     if not (guid.match(tenant) or domain.match(tenant)):
         sys.exit("[error] AZURE_TENANT_ID inválido. Debe ser el 'Id. de directorio (inquilino)' "
@@ -71,6 +72,12 @@ def get_token():
     if not guid.match(client_id):
         sys.exit("[error] AZURE_CLIENT_ID inválido: debe ser el 'Id. de aplicación (cliente)' "
                  "(GUID). " + diag(client_id))
+    # El client secret NUNCA es un GUID: si lo parece, se pegó el 'Id. del secreto'.
+    if guid.match(client_secret):
+        sys.exit("[error] AZURE_CLIENT_SECRET parece ser el 'Id. del secreto' (tiene forma de GUID), "
+                 "NO el 'Valor'. En Azure › Certificados y secretos, copia la columna 'Valor' "
+                 "(texto largo con ~ . - , p.ej. 'Xy7Q~aBc...'), no la columna 'Id. secreto'. "
+                 + diag(client_secret))
     body = urllib.parse.urlencode({
         "client_id":     client_id,
         "client_secret": client_secret,
@@ -91,9 +98,10 @@ def get_token():
             code, desc = "", detail[:300]
         hint = ""
         if "7000215" in detail:
-            hint = ("→ El CLIENT SECRET es incorrecto. En Azure, "
-                    "'Certificados y secretos', copia el campo 'Valor' del secreto "
-                    "(NO el 'Id. del secreto') y actualízalo en AZURE_CLIENT_SECRET.")
+            hint = ("→ El CLIENT SECRET no coincide. Causas típicas: (1) se pegó el 'Id. del secreto' "
+                    "en vez del 'Valor'; (2) el 'Valor' se copió incompleto; o (3) el secreto pertenece "
+                    "a OTRA app distinta al AZURE_CLIENT_ID. Solución segura: en Azure, en la MISMA app "
+                    "cuyo Id. de cliente usaste, crea un secreto nuevo y copia su 'Valor' completo.")
         elif "7000222" in detail:
             hint = "→ El client secret EXPIRÓ. Crea uno nuevo en Azure y actualiza AZURE_CLIENT_SECRET."
         elif "700016" in detail:
