@@ -80,3 +80,71 @@ Flujo de costos de construcción mensual proyectado vs. real (editable, por esce
 ## Fuente
 Microsoft Teams › Periferia Urbana › Canal **Boulevard Sur** › carpeta **Flujo Financiero** →
 `PU PROJECT 94M Escenario BI 31-05-2026 12 nvls.xlsx` (hojas RESUMEN GENERAL, ER F2, SUPUESTOS F2, INDICES, INCREMENTO F2).
+
+---
+
+# KPI de Planner (`planner-kpi.html`)
+
+Dashboard de **cumplimiento de tareas del plan "Periferia Urbana" de Microsoft Planner**, conectado en vivo
+a Microsoft Graph. No usa exportaciones ni copias: cada vez que se abre, lee las tareas directamente de
+Planner con la sesión de Microsoft del usuario, y se refresca solo cada 5 minutos mientras está abierto.
+
+**Filtros:** usuario · período · estado (realizadas en fecha estimada / realizadas fuera de fecha /
+pendientes vencidas / pendientes en plazo).
+
+**KPIs:** % de cumplimiento de entrega, entregadas a tiempo, entregadas tarde, vencidas sin entregar
+y avance de la operación — en total, por usuario (gráfica y tabla) y con el detalle tarea por tarea.
+
+> El cumplimiento se mide **contra la fecha de entrega** (fecha de vencimiento de Planner):
+> **a tiempo** = entrega real ≤ fecha de entrega (por día), y
+> **% cumplimiento = a tiempo ÷ exigibles**, donde exigibles = entregadas con fecha + vencidas sin
+> entregar. Las entregadas sin fecha de entrega se listan aparte y no afectan el %.
+
+## Puesta en marcha (una sola vez)
+
+### 1. Registrar la aplicación en Azure (lo hace TI o un administrador, ~5 min)
+1. [portal.azure.com](https://portal.azure.com) → **Microsoft Entra ID** → **Registros de aplicaciones** → **Nuevo registro**.
+2. Nombre: `Dashboard KPI Planner` · Cuentas: **solo este directorio organizativo**.
+3. URI de redirección: tipo **Aplicación de página única (SPA)** → la URL pública de la página
+   (p. ej. `https://paolamp91.github.io/finanzas/planner-kpi.html`).
+4. **Permisos de API** → Microsoft Graph → **Delegados**: `User.Read`, `Tasks.Read`, `User.ReadBasic.All`
+   → **Conceder consentimiento de administrador**.
+5. Copiar el **Id. de aplicación (cliente)** y el **Id. de directorio (inquilino)**.
+
+### 2. Publicar la página
+En GitHub → repositorio `finanzas` → **Settings → Pages** → Source: rama `main` (carpeta `/`).
+La página queda en `https://paolamp91.github.io/finanzas/planner-kpi.html`.
+
+### 3. Dejarlo en el canal **General Administrativo** de Teams
+1. Abrir el equipo → canal **General Administrativo** → **+** (Agregar pestaña) → **Sitio web**.
+2. Nombre: `KPI Planner` · URL (con la configuración incluida, para que nadie tenga que configurar nada):
+
+   ```
+   https://paolamp91.github.io/finanzas/planner-kpi.html?clientId=<CLIENT_ID>
+   ```
+
+   El tenant de Grupo P (`a8cb009b-98b1-4b87-ab9f-ecee5d1ebd14`) y el plan Periferia Urbana
+   (ID `9Ta9UufHO0mDGpATZEM5aGUAGnOz`, tomado del enlace de Planner en Teams) ya vienen
+   preconfigurados en la página; solo hace falta el Client ID del registro de Azure.
+
+3. Cada persona inicia sesión con su cuenta de Microsoft la primera vez; después entra directo.
+
+### 4. Actualización
+Automática: la página consulta Planner en vivo al abrirse y se refresca cada 5 minutos
+(botón **Actualizar ahora** para forzarla). No hay archivos que regenerar.
+
+**Sin configuración todavía:** el botón **"Ver con datos de ejemplo"** muestra el dashboard completo
+con datos ficticios para revisar el diseño antes de conectarlo.
+
+## Corte desde Excel (sin conexión): `build_from_planner.py`
+
+El dashboard trae **embebido un corte real del plan** (export de Excel de Planner), así que funciona
+completo aunque no haya conexión configurada; la barra superior indica la fecha del corte. Para
+refrescar el corte con un export nuevo:
+
+1. En Planner (Teams) → el plan → **… → Exportar plan a Excel**.
+2. `python3 build_from_planner.py "PLANNER_PERIFERIA_URBANA.xlsx"` (requiere `pip install openpyxl`).
+3. Commit y push de `planner-kpi.html`.
+
+La conexión en vivo (botón "Conectar con Microsoft") sigue disponible y, cuando está configurada,
+tiene prioridad sobre el corte. Corte actual: **07/07/2026 · 501 tareas**.

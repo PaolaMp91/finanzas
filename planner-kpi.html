@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KPI Planner · Periferia Urbana</title>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.1/lib/msal-browser.min.js"></script>
+<style>
+  :root{
+    --navy:#0f2c4d; --navy2:#16406e; --blue:#1f73c4; --sky:#e8f0fa;
+    --gold:#c9a227; --teal:#0f9d8c;
+    --bg:#eef1f6; --card:#ffffff; --line:#e2e8f0;
+    --txt:#1c2733; --muted:#67748a; --soft:#8a96a8;
+    --good:#1f9d57; --bad:#d64545; --warn:#d98a1f;
+    --shadow:0 1px 3px rgba(16,35,60,.07),0 6px 18px rgba(16,35,60,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.45;font-size:14px}
+  .wrap{max-width:1340px;margin:0 auto;padding:0 22px 50px}
+  .brand{background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 55%,#1d4f86 100%);color:#fff;padding:22px 0;margin-bottom:26px;box-shadow:var(--shadow)}
+  .brand .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;padding-bottom:0}
+  .brand .logo{display:flex;align-items:center;gap:14px}
+  .brand .mark{width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,var(--gold),#e6c560);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:19px;letter-spacing:-1px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .brand h1{font-size:21px;font-weight:650}
+  .brand .sub{color:#b9cce4;font-size:12.5px;margin-top:2px}
+  .brand .meta{text-align:right;font-size:12.5px;color:#cdddf0}
+  .brand .meta .corte{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:20px;font-weight:600;color:#fff}
+  section{margin-bottom:30px}
+  h2.sec{font-size:12.5px;text-transform:uppercase;letter-spacing:1.1px;color:var(--navy);font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+  h2.sec::before{content:"";width:4px;height:15px;background:var(--gold);border-radius:3px;display:inline-block}
+  .grid{display:grid;gap:15px}
+  .g5{grid-template-columns:repeat(5,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:1050px){.g5,.g4{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+  @media(max-width:560px){.g5,.g4{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:17px;box-shadow:var(--shadow)}
+  .kpi .k-label{color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .k-val{font-size:25px;font-weight:750;margin-top:7px;color:var(--navy)}
+  .kpi .k-sub{color:var(--soft);font-size:11.5px;margin-top:5px}
+  .kpi.hero{background:linear-gradient(150deg,var(--navy),var(--navy2));border:none}
+  .kpi.hero .k-label{color:#a9c2e0} .kpi.hero .k-val{color:#fff} .kpi.hero .k-sub{color:#94aece}
+  .kpi.ok .k-val{color:var(--good)} .kpi.bad .k-val{color:var(--bad)} .kpi.warn .k-val{color:var(--warn)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:9px 11px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  thead th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;background:#f7f9fc}
+  tbody tr:hover{background:#f6f9fd}
+  tfoot td{font-weight:700;border-top:2px solid var(--navy);border-bottom:none;color:var(--navy)}
+  .bar-cell{position:relative}
+  .bar-cell .barfill{position:absolute;left:0;top:3px;bottom:3px;background:linear-gradient(90deg,rgba(31,115,196,.16),rgba(31,115,196,.05));border-radius:0 4px 4px 0;z-index:0}
+  .bar-cell span{position:relative;z-index:1}
+  .chart-box{position:relative}
+  .pill{font-size:11px;padding:2px 9px;border-radius:11px;font-weight:700;white-space:nowrap}
+  .pill.ok{background:#e7f3ec;color:var(--good)} .pill.no{background:#fbe9e9;color:var(--bad)}
+  .pill.wa{background:#fdf3e3;color:var(--warn)} .pill.gy{background:#eef2f7;color:var(--muted)}
+  .note{color:var(--soft);font-size:11.5px;margin-top:11px;font-style:italic}
+  footer{color:var(--muted);font-size:11.5px;border-top:1px solid var(--line);padding-top:18px;margin-top:14px}
+  footer code{background:#eef2f7;padding:1px 6px;border-radius:4px;color:var(--navy);font-size:11px}
+
+  /* ---- conexión / configuración ---- */
+  .conn{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+  .conn .status{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--navy)}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--soft);flex:none}
+  .dot.on{background:var(--good)} .dot.err{background:var(--bad)}
+  .btn{border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  .btn.primary{background:var(--blue);color:#fff}
+  .btn.primary:hover{background:#1a63aa}
+  .btn.ghost{background:var(--sky);color:var(--blue)}
+  .btn.ghost:hover{background:#d9e8f8}
+  .btn.soft{background:#eef2f7;color:var(--muted)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .cfg{display:none;margin-top:15px;border-top:1px dashed var(--line);padding-top:15px}
+  .cfg.open{display:block}
+  .cfg .row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+  .cfg label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px}
+  .cfg input,.cfg select{border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:13px;font-family:inherit;min-width:280px;color:var(--txt)}
+  .cfg input:focus,.cfg select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(31,115,196,.15)}
+  details.help{margin-top:13px;font-size:13px}
+  details.help summary{cursor:pointer;font-weight:700;color:var(--blue);font-size:12.5px}
+  details.help ol{margin:10px 0 4px 20px}
+  details.help li{margin-bottom:7px}
+  details.help code{background:#eef2f7;padding:1px 6px;border-radius:4px;color:var(--navy);font-size:11.5px}
+  .alert{display:none;background:#fbe9e9;border:1px solid #f0c4c4;color:#9c2f2f;border-radius:9px;padding:10px 14px;font-size:12.5px;margin-top:12px}
+  .alert.show{display:block}
+
+  /* ---- fila de filtros ---- */
+  .filters{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+  .filters .f{display:flex;flex-direction:column;gap:5px}
+  .filters label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .filters select{border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;background:#fff;min-width:170px;color:var(--txt);cursor:pointer}
+  .filters select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(31,115,196,.15)}
+  .filters .spacer{flex:1}
+  .refresh-meta{font-size:11.5px;color:var(--soft);text-align:right}
+  .legend-row{display:flex;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px;align-items:center}
+  .legend-row .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .dim{opacity:.45;transition:opacity .25s}
+  .empty{color:var(--soft);text-align:center;padding:34px 10px;font-size:13px}
+
+  /* ---- barras apiladas por usuario (HTML/CSS, sin librerías) ---- */
+  .hbars .hrow{display:grid;grid-template-columns:minmax(120px,190px) 1fr 118px;gap:12px;align-items:center;padding:5px 0}
+  .hbars .hname{font-size:12.5px;text-align:right;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hbars .htrack{display:flex;gap:2px;height:18px;align-items:stretch;border-left:1px solid #c6cfda}
+  .hbars .seg{border-radius:0 4px 4px 0;transition:width .3s}
+  .hbars .seg.ot{background:var(--good)} .hbars .seg.lt{background:var(--bad);border-radius:4px}
+  .hbars .seg:first-child{border-radius:0 4px 4px 0}
+  .hbars .hvals{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .hbars .hvals b.g{color:var(--good)} .hbars .hvals b.r{color:var(--bad)}
+  .hbars .hrow:hover{background:#f6f9fd;border-radius:6px}
+  .haxis{display:grid;grid-template-columns:minmax(120px,190px) 1fr 118px;gap:12px;color:var(--soft);font-size:10.5px;margin-top:6px}
+  .haxis .ticks{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:4px}
+</style>
+</head>
+<body>
+
+  <div style="background:#0f2c4d;padding:9px 0"><div class="wrap" style="display:flex;gap:8px;padding-bottom:0;flex-wrap:wrap">
+    <a href="index.html" style="color:#b9cce4;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px">Dashboard operativo</a>
+    <a href="brief.html" style="color:#b9cce4;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px">Investment Brief</a>
+    <a href="matriz.html" style="color:#b9cce4;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px">Matriz · Ejecutado vs Proyectado</a>
+    <a href="planner-kpi.html" style="color:#fff;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px;background:rgba(255,255,255,.13)">KPI Planner</a>
+  </div></div>
+
+  <div class="brand">
+    <div class="wrap">
+      <div class="logo">
+        <div class="mark">PU</div>
+        <div>
+          <h1>Cumplimiento de KPI · Planner</h1>
+          <div class="sub">Periferia Urbana · Tareas por usuario · A tiempo vs. fuera de fecha</div>
+        </div>
+      </div>
+      <div class="meta">
+        <span class="corte" id="planBadge">Sin conectar</span>
+        <div style="margin-top:7px" id="lastSync">Los datos se leen en vivo desde Microsoft Planner</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- ============ CONEXIÓN ============ -->
+    <section>
+      <div class="card">
+        <div class="conn">
+          <div class="status"><span class="dot" id="connDot"></span><span id="connText">No conectado a Microsoft 365</span></div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            <button class="btn primary" id="btnLogin">Conectar con Microsoft</button>
+            <button class="btn ghost" id="btnRefresh" disabled>Actualizar ahora</button>
+            <button class="btn ghost" id="btnDemo">Ver con datos de ejemplo</button>
+            <button class="btn soft" id="btnCfg">⚙ Configuración</button>
+          </div>
+        </div>
+        <div class="alert" id="errBox"></div>
+        <div class="cfg" id="cfgPanel">
+          <div class="row">
+            <div>
+              <label for="cfgClient">Client ID (aplicación de Azure)</label>
+              <input id="cfgClient" placeholder="00000000-0000-0000-0000-000000000000" />
+            </div>
+            <div>
+              <label for="cfgTenant">Tenant ID (directorio)</label>
+              <input id="cfgTenant" placeholder="a8cb009b-98b1-4b87-ab9f-ecee5d1ebd14" />
+            </div>
+            <div>
+              <label for="cfgPlanId">Plan ID (del enlace de Planner)</label>
+              <input id="cfgPlanId" placeholder="9Ta9UufHO0mDGpATZEM5aGUAGnOz" />
+            </div>
+            <div>
+              <label for="cfgPlanName">Nombre del plan (respaldo si el ID falla)</label>
+              <input id="cfgPlanName" value="Periferia Urbana" />
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <button class="btn primary" id="btnSaveCfg">Guardar</button>
+            </div>
+          </div>
+          <details class="help">
+            <summary>¿Cómo obtengo el Client ID? (registro único, lo hace TI o un administrador — 5 min)</summary>
+            <ol>
+              <li>Entrar a <code>portal.azure.com</code> → <b>Microsoft Entra ID</b> → <b>Registros de aplicaciones</b> → <b>Nuevo registro</b>.</li>
+              <li>Nombre: <code>Dashboard KPI Planner</code>. Tipo de cuenta: <b>solo este directorio organizativo</b>.</li>
+              <li>En <b>URI de redirección</b> elegir <b>Aplicación de página única (SPA)</b> y pegar la URL donde vive esta página (por ejemplo <code>https://paolamp91.github.io/finanzas/planner-kpi.html</code>).</li>
+              <li>En <b>Permisos de API</b> → <b>Agregar permiso</b> → <b>Microsoft Graph</b> → <b>Permisos delegados</b>: agregar <code>User.Read</code>, <code>Tasks.Read</code> y <code>User.ReadBasic.All</code>. Pedir a un administrador el <b>consentimiento de administrador</b>.</li>
+              <li>Copiar el <b>Id. de aplicación (cliente)</b> y el <b>Id. de directorio (inquilino)</b> de la página <b>Información general</b> y pegarlos aquí. Quedan guardados en este navegador.</li>
+            </ol>
+            <p style="color:var(--muted);font-size:12px">El tenant de Grupo P y el plan Periferia Urbana ya vienen preconfigurados. Solo falta el Client ID, que también puede ir en la URL: <code>planner-kpi.html?clientId=…</code> — útil para la pestaña de Teams, así nadie tiene que configurar nada.</p>
+          </details>
+          <details class="help">
+            <summary>¿Cómo lo dejo publicado en el canal “General Administrativo” y que se actualice solo?</summary>
+            <ol>
+              <li><b>Publicar la página:</b> en GitHub → repositorio <code>finanzas</code> → <b>Settings → Pages</b> → Source: <code>main</code>. La página quedará en <code>https://paolamp91.github.io/finanzas/planner-kpi.html</code>.</li>
+              <li><b>Agregarla a Teams:</b> abrir el equipo → canal <b>General Administrativo</b> → botón <b>+</b> (Agregar pestaña) → <b>Sitio web</b> → nombre <code>KPI Planner</code> y pegar la URL de arriba (con <code>?clientId=…</code> al final).</li>
+              <li><b>Actualización:</b> no hay que hacer nada. Cada vez que alguien abre la pestaña, la página consulta Planner en vivo; además se refresca sola cada 5 minutos mientras está abierta. Cada persona inicia sesión con su propia cuenta de Microsoft la primera vez.</li>
+            </ol>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FILTROS ============ -->
+    <section>
+      <div class="card">
+        <div class="filters">
+          <div class="f">
+            <label for="fUser">Usuario</label>
+            <select id="fUser"><option value="">Todos los usuarios</option></select>
+          </div>
+          <div class="f">
+            <label for="fBucket">Depósito</label>
+            <select id="fBucket"><option value="">Todos los depósitos</option></select>
+          </div>
+          <div class="f">
+            <label for="fPeriod">Período</label>
+            <select id="fPeriod">
+              <option value="all">Todo el historial</option>
+              <option value="7">Últimos 7 días</option>
+              <option value="30" selected>Últimos 30 días</option>
+              <option value="90">Últimos 90 días</option>
+              <option value="mtd">Mes en curso</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="fStatus">Estado de la tarea</label>
+            <select id="fStatus">
+              <option value="all">Todos los estados</option>
+              <option value="ontime">Entregadas a tiempo</option>
+              <option value="late">Entregadas tarde</option>
+              <option value="nodate">Entregadas sin fecha de entrega</option>
+              <option value="overdue">Vencidas sin entregar</option>
+              <option value="open">Pendientes en plazo</option>
+            </select>
+          </div>
+          <div class="spacer"></div>
+          <div class="refresh-meta" id="refreshMeta">—</div>
+        </div>
+      </div>
+    </section>
+
+    <div id="dash" class="dim" style="opacity:.35">
+
+    <!-- ============ KPI ROW ============ -->
+    <section>
+      <h2 class="sec">Resumen de cumplimiento <span id="scopeTag" style="text-transform:none;letter-spacing:0;color:var(--muted);font-weight:600"></span></h2>
+      <div class="grid g5">
+        <div class="card kpi hero"><div class="k-label">% Cumplimiento de entrega</div><div class="k-val" id="kPct">—</div><div class="k-sub">a tiempo ÷ exigibles (entregadas + vencidas)</div></div>
+        <div class="card kpi ok"><div class="k-label">✔ Entregadas a tiempo</div><div class="k-val" id="kOnTime">—</div><div class="k-sub" id="kOnTimeSub">&nbsp;</div></div>
+        <div class="card kpi bad"><div class="k-label">✖ Entregadas tarde</div><div class="k-val" id="kLate">—</div><div class="k-sub" id="kLateSub">&nbsp;</div></div>
+        <div class="card kpi warn"><div class="k-label">⚠ Vencidas sin entregar</div><div class="k-val" id="kOverdue">—</div><div class="k-sub">ya pasó su fecha de entrega</div></div>
+        <div class="card kpi"><div class="k-label">Avance de la operación</div><div class="k-val" id="kTotal">—</div><div class="k-sub" id="kTotalSub">&nbsp;</div></div>
+      </div>
+    </section>
+
+    <!-- ============ GRÁFICA POR USUARIO ============ -->
+    <section>
+      <h2 class="sec">Entregas por usuario · a tiempo vs. tarde</h2>
+      <div class="card">
+        <div class="chart-box"><div class="hbars" id="chartUsers"></div><div class="haxis" id="chartAxis"></div></div>
+        <div class="legend-row">
+          <span><span class="sw" style="background:var(--good)"></span><b>✔ A tiempo</b> — entregada en o antes de la fecha de entrega</span>
+          <span><span class="sw" style="background:var(--bad)"></span><b>✖ Tarde</b> — entregada después de la fecha de entrega</span>
+        </div>
+        <div class="note">Una tarea asignada a varias personas cuenta para cada una. Las tareas entregadas sin fecha de entrega no entran en el % de cumplimiento (se listan aparte en la tabla).</div>
+      </div>
+    </section>
+
+    <!-- ============ TABLA POR USUARIO ============ -->
+    <section>
+      <h2 class="sec">Detalle de KPI por usuario</h2>
+      <div class="card" style="overflow-x:auto">
+        <table id="tblUsers">
+          <thead><tr>
+            <th>Usuario</th><th>Asignadas</th><th>Completadas</th>
+            <th>✔ A tiempo</th><th>✖ Tarde</th><th>Sin fecha</th>
+            <th>Pend. en plazo</th><th>⚠ Vencidas</th><th>% Cumplimiento</th>
+          </tr></thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ DETALLE DE TAREAS ============ -->
+    <section>
+      <h2 class="sec">Tareas del filtro actual</h2>
+      <div class="card" style="overflow-x:auto">
+        <table id="tblTasks">
+          <thead><tr>
+            <th>Tarea</th><th style="text-align:left">Asignada a</th><th style="text-align:left">Depósito</th>
+            <th>Fecha de entrega</th><th>Entrega real</th><th>Estado</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="note" id="tasksNote"></div>
+      </div>
+    </section>
+
+    </div><!-- /dash -->
+
+    <footer>
+      Fuente: Microsoft Planner vía Microsoft Graph (<code>/me/planner/plans</code> → <code>/planner/plans/{id}/tasks</code>), lectura en vivo con la sesión de cada usuario ·
+      “A tiempo” = entrega real ≤ fecha de entrega (comparación por día) · % cumplimiento = a tiempo ÷ (entregadas con fecha + vencidas sin entregar) ·
+      Auto-refresco cada 5 minutos mientras la página está abierta.
+    </footer>
+  </div>
+
+<script>
+"use strict";
+/* ================= configuración ================= */
+const qs = new URLSearchParams(location.search);
+const DEFAULT_TENANT = "a8cb009b-98b1-4b87-ab9f-ecee5d1ebd14"; // Grupo P
+const DEFAULT_PLAN_ID = "9Ta9UufHO0mDGpATZEM5aGUAGnOz";           // Plan Periferia Urbana
+const store = {
+  get clientId(){ return qs.get("clientId") || localStorage.getItem("pu_clientId") || ""; },
+  get tenant(){ return qs.get("tenant") || localStorage.getItem("pu_tenant") || DEFAULT_TENANT; },
+  get planId(){ return qs.get("planId") || localStorage.getItem("pu_planId") || DEFAULT_PLAN_ID; },
+  get planName(){ return qs.get("plan") || localStorage.getItem("pu_planName") || "Periferia Urbana"; },
+  save(c,t,pid,p){ localStorage.setItem("pu_clientId",c); localStorage.setItem("pu_tenant",t); localStorage.setItem("pu_planId",pid); localStorage.setItem("pu_planName",p); }
+};
+/*__SNAPSHOT_START__*/
+const SNAPSHOT = {"plan":"PLANNER PERIFERIA URBANA","exported":"2026-07-07","tasks":[{"t":"Revisar y actualizar comentarios realizados en Procesos Contables","d":"2025-11-20","f":"2026-02-20","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Realizar Escenario Legal","d":"2025-11-19","f":"2025-11-24","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Reunión con equipo legal revisar tema de Pagarés","d":"2025-11-25","f":"2026-02-03","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Costo de Implementación de Parqueo Temporal en Área de Parqueos","d":"2025-11-25","f":"2025-12-17","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Carga de pagos historicos de pagos realizados desde 2024 para poder realizar carga en Dashboard","d":"2025-11-25","f":"2026-02-20","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Finalizar Curso de Quickbooks","d":"2025-12-31","f":"2025-12-22","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Propuesta de Presupuesto en Dashboard Financiero","d":"2025-11-25","f":"2026-02-20","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Revisión de los impuestos y retenciones en facturas recibidas de Estados Unidos","d":"2025-11-25","f":"2025-11-21","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Enviar información de libros de compras a Gabriel","d":"2025-11-25","f":"2025-12-11","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Cotizar logo de Periferia sin Luz","d":"2025-11-20","f":"2025-11-24","u":[],"b":"REVISADO"},{"t":"Cotizar control de acceso","d":"2025-11-20","f":"2025-12-09","u":[],"b":"REVISADO"},{"t":"Cargar Bases de Licitación en Teams para Aprobación de Socios","d":"2025-11-19","f":"2025-12-09","u":[],"b":"REVISADO"},{"t":"Reunión con Alejandro Chajon","d":"2025-11-21","f":"2026-02-20","u":["Periferia Urbana"],"b":"REVISADO"},{"t":"Enviar a Muni Mixco Cuadro Comparativo","d":"2025-11-19","f":"2025-11-24","u":[],"b":"REVISADO"},{"t":"Compra de Insumos de Nueva Oficina","d":"2025-11-21","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Cotización de Fumigación de Showroom","d":"2025-11-21","f":"2025-12-12","u":[],"b":"REVISADO"},{"t":"Compra de Vinilo para Logo de Afuera","d":"2025-11-21","f":"2025-12-01","u":[],"b":"REVISADO"},{"t":"Compra de Vinilo para cambio de logo en Rotulador fuera de elevadores","d":"2025-11-21","f":"2025-12-01","u":[],"b":"REVISADO"},{"t":"Cotización de Convivio","d":"2025-11-21","f":"2025-12-22","u":[],"b":"REVISADO"},{"t":"Correr visita Byron a próxima semana","d":"2025-11-27","f":"2025-12-01","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Devolver planos de CONRED con Correcciones","d":"2025-11-24","f":"2025-12-17","u":[],"b":"REVISADO"},{"t":"Diseño de Desfogue","d":"2025-11-26","f":"2025-12-26","u":[],"b":"REVISADO"},{"t":"Obtener respuesta de Gerardo Vera sobre el área a reforestar","d":"2025-11-24","f":"2025-12-17","u":[],"b":"REVISADO"},{"t":"Plan de mantenimiento de maquinaria de movimiento de obra","d":"2025-11-28","f":"2025-12-09","u":[],"b":"REVISADO"},{"t":"Agregar a flujo: Costo de Mantenimiento de Área a Reforestar","d":"2025-11-26","f":"2026-02-03","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Validar Precio máximo a ofertar por Terreno Z18","d":"2025-11-21","f":"2025-11-24","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Enviar fecha de planos con corrección para F1","d":"2025-11-20","f":"2025-11-25","u":[],"b":"REVISADO"},{"t":"Organizar y Cargar Minutas en Carpetas Teams","d":"2026-04-30","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"Solicitar datos a Luis Morales","d":"2025-12-02","f":"2025-11-26","u":[],"b":"REVISADO"},{"t":"Ordenar las carpetas de Presupuesto","d":"2025-11-21","f":"2025-11-24","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Dudas de Flujo Real Pagos","d":"2025-11-24","f":"2025-11-26","u":["Dylan Augusto Callejas Castillo","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Contratos para Dashboard","d":"2025-11-26","f":"2025-12-17","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Instalación logo de Recepción","d":"2025-12-01","f":"2025-12-09","u":[],"b":"REVISADO"},{"t":"Tener 3 cotizaciones de planos CONRED F2","d":"2025-11-24","f":"2025-12-01","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Cerrar tema de instalación acometida Temporal","d":"2025-11-26","f":"2025-12-09","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Cuadro de presupuestos F2 espcialistas y posibles sobrecostos","d":"2025-11-26","f":"2026-02-03","u":["Gerardo Pirir","Christianee Barrios","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Presionar a Mario de Muni para revisar cuadro comparativo F1 y anteproyecto F2","d":"2025-11-25","f":"2025-11-25","u":[],"b":"REVISADO"},{"t":"Dar Seguimiento al nuevo presupuesto de Urbanización con Jorge Reyes","d":"2025-11-26","f":"2025-12-09","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Plantilla Comisiones","d":"2026-04-30","f":null,"u":["Christianee Barrios","Dylan Augusto Callejas Castillo","Stefany Gil"],"b":"ENTREGADO"},{"t":"Reproceso de Quickbooks sin errores","d":"2025-12-26","f":"2026-02-03","u":["Dylan Augusto Callejas Castillo","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Obtener respuesta de Gabriel de masterplan ante SAT (Memorandum)","d":"2025-11-26","f":"2026-02-23","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Arreglar flujo y agregar validadores en todas las hojas","d":"2025-11-28","f":"2026-02-03","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Agregar en flujo comisiones por serbipagos en Banrural y BI","d":"2025-11-28","f":"2025-12-17","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"COTIZACIÓN LIMPIEZA DE SIILLÓN SHOWROOM","d":"2025-11-25","f":"2025-12-22","u":[],"b":"REVISADO"},{"t":"Temas para llevar a Junta Directiva","d":"2025-11-26","f":"2025-12-01","u":["Dylan Augusto Callejas Castillo","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Quitar e instalar el logo de la oficina de Miler","d":"2025-12-01","f":"2025-12-09","u":[],"b":"REVISADO"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-07-12","f":null,"u":["Celeste Flores","Christianee Barrios"],"b":"ENTREGADO"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-07-05","f":"2026-07-07","u":["Celeste Flores","Christianee Barrios"],"b":"ENTREGADO"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-06-28","f":"2026-07-07","u":["Celeste Flores","Christianee Barrios"],"b":"ENTREGADO"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-06-21","f":"2026-06-23","u":["Celeste Flores","Christianee Barrios"],"b":"ENTREGADO"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-06-14","f":"2026-06-23","u":["Celeste Flores","Christianee Barrios"],"b":"ENTREGADO"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-06-07","f":"2026-06-23","u":["Celeste Flores","Christianee Barrios"],"b":"ENTREGADO"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-05-31","f":"2026-06-23","u":["Celeste Flores","Christianee Barrios"],"b":"ENTREGADO"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-05-29","f":"2026-06-19","u":["Celeste Flores","Christianee Barrios"],"b":"EN PAUSA"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-05-17","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-05-10","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"Llenar columnas de pagos de comisiones","d":"2026-04-30","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"Cotización de Monitor para Gerardo","d":"2025-11-28","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Pagar servicios de Showroom y Periferia","d":"2025-11-25","f":"2025-12-01","u":[],"b":"REVISADO"},{"t":"Tarjetas de Acceso de Luis, Gerardo y Luis","d":"2025-11-28","f":"2025-12-22","u":[],"b":"REVISADO"},{"t":"Revisión de Flujo enviado por Paola","d":"2025-11-28","f":"2026-02-20","u":["Christianee Barrios","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Revisión de Propuesta de Auditoría Anual de UHY para 2025","d":"2025-11-26","f":"2025-12-09","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Adjuntar facturas de los pagos realizados con TC de Condado Eilat","d":"2025-11-26","f":"2025-12-17","u":["Jeferson Cifuentes","Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Proyectar nuevamente flujo Real con pagos arreglados","d":"2025-11-26","f":"2025-12-09","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Escanear y ordenar expediente financiero Periferia","d":"2025-12-05","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Presentar palancas y escudos Flujo","d":"2025-12-03","f":"2026-02-03","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Hacer backup de compu mía para Luis","d":"2025-12-03","f":"2025-12-09","u":[],"b":"REVISADO"},{"t":"Creacion de Partidas de Piscina y Acometida temporal en Quickbooks","d":"2025-12-02","f":"2025-12-09","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Clasificación de partidas TC Banrural","d":"2025-12-05","f":"2025-12-22","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Flujo Real Noviembre","d":null,"f":"2025-12-05","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Plantilla de comisiones Periferia","d":"2025-12-03","f":"2025-12-09","u":["Christianee Barrios","Stefany Gil"],"b":"REVISADO"},{"t":"Entrega de Cronograma de Obra","d":"2025-12-11","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Calculo de pipas de agua necesarias para movimiento de tierra","d":"2025-12-04","f":"2025-12-09","u":[],"b":"REVISADO"},{"t":"Escenario Fijar Precio Acero F2","d":null,"f":"2025-12-17","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Escenarios Pipas de Agua Proyecto","d":"2025-12-05","f":"2025-12-17","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Actualización del Régimen de ISR","d":"2025-12-31","f":"2025-12-17","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Elaboración de Contrato Periferia","d":"2025-12-31","f":"2026-03-28","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Arreglar carpetas de mercadeo","d":"2025-12-15","f":"2026-02-03","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Realizar PPT para Junta Directiva jueves","d":"2025-12-10","f":"2025-12-17","u":["Dylan Augusto Callejas Castillo","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Validar con Miler el aporte de Shalim para reclasificarlo en contabilidad","d":"2025-12-12","f":"2026-02-20","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Enviar presentación de estrategia de mercadeo","d":"2025-12-05","f":"2025-12-22","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Video institucional de BLS","d":"2025-12-05","f":"2025-12-22","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Terminar videos PODCAST","d":"2025-12-08","f":"2026-03-02","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Escanear expedientes a Comercial","d":"2025-12-19","f":"2025-12-17","u":["Stefany Gil"],"b":"REVISADO"},{"t":"Cerrar Presupuesto Jorge Reyes","d":"2025-12-15","f":"2025-12-23","u":["Christianee Barrios","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Tomar Control La Brigada","d":"2025-12-12","f":"2026-02-20","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Completar acceso a carpeta de CONTRATISTA","d":"2025-12-17","f":"2025-12-17","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Completar acceso a carpeta de CONTRATISTA a NPUNTO","d":"2025-12-17","f":"2025-12-17","u":[],"b":"REVISADO"},{"t":"Cotización de Camaras Oficina","d":"2025-12-26","f":"2025-12-22","u":[],"b":"REVISADO"},{"t":"Cotizar stickers de vinilo para oficina: Gerencia General, baño, sala de reuniones","d":"2026-03-31","f":"2026-03-28","u":[],"b":"REVISADO"},{"t":"Cotizar Mapa para Sala de Reuniones de la Ciudad","d":"2025-12-31","f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"Cotizar 2 macetas grandes con plantas artificiales para la oficina","d":"2025-12-26","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Cotizar 2 sillas para oficina","d":"2025-12-26","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Cotización 2 Sillas para Comedor","d":null,"f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Agregar en Flujo F2 el pago de la RL mensual","d":"2025-12-18","f":"2025-12-22","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Actualizar flujo Sj","d":"2025-12-19","f":"2026-02-20","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Subir información a FHA","d":"2025-12-17","f":"2025-12-23","u":[],"b":"REVISADO"},{"t":"Enviar a Mario de Muni planos F2 digitales","d":"2025-12-17","f":"2025-12-22","u":[],"b":"REVISADO"},{"t":"Realizar una radiografía de Tramitología","d":"2025-12-19","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Platicar con Sergio Lab","d":"2025-12-19","f":"2025-12-22","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Aperturar cuentas bancarias de la nueva S.A.","d":"2026-02-28","f":"2026-03-18","u":[],"b":"REVISADO"},{"t":"Escanear los documentos legales de Nova Gestión","d":"2025-12-24","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Actualizar Flujo PU NOV","d":"2025-12-22","f":"2026-02-20","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Terminar ambos cursos de PM y Planner","d":"2025-12-19","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Realizar cuadro cuantitativo para Juntas Directivas","d":"2025-12-26","f":"2026-02-03","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Reunión con Óscar Valdez","d":"2026-01-14","f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"Reunión General de Planificación F2","d":"2026-01-08","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Realizar plataforma reducida con DAHO Pozos","d":"2026-01-05","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Cuadro de Movimiento de Tierra","d":"2026-01-05","f":"2026-02-03","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Confirmar modelos y precios con Globales.","d":"2026-01-09","f":"2026-02-20","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Planificación de Muebles de Baño","d":"2025-12-31","f":"2026-02-03","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Análisis de Costos Nabla","d":"2025-12-23","f":"2026-02-03","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Validar diferencias que se deben cobrar en tercer pago de Comisiones","d":"2025-12-30","f":"2026-02-20","u":["Dylan Augusto Callejas Castillo","Stefany Gil"],"b":"REVISADO"},{"t":"Validar con Miler si ca,biarnos de regimen al de construcción es viable legalmente","d":"2025-12-30","f":"2026-02-23","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Realizar el plan de pagos para Periferia Urbana del IVA por cobrar","d":"2025-12-26","f":"2026-02-03","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Crear una nueva partida dentro de Varios para IUSI","d":"2025-12-30","f":"2026-02-03","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Validar Aportes entre Eilat y Norvia para mantener 50% y 50%","d":"2026-01-31","f":"2026-02-03","u":["Christianee Barrios","Dylan Augusto Callejas Castillo","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Tener respuesta y correcciones de FHA","d":"2026-01-20","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Validar con Wagner el costo de instalación y negociación","d":"2026-01-02","f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"Revisar Nota adjuntada por FHA de TA, TB y TC","d":"2025-12-30","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Plan de Acción Plataforma","d":"2025-12-29","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"PPT Kickoff","d":"2026-01-15","f":"2026-02-03","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Realizar correcciones FHA","d":"2026-01-15","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"Reembolsar IUSI a Hito","d":"2026-01-15","f":"2026-02-03","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Comprobante Tarjeta de Crédito GTQ","d":null,"f":"2026-02-03","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Flujo Real Diciembre 2025","d":null,"f":"2026-02-03","u":["Christianee Barrios","Sebastian Pimentel"],"b":"REVISADO"},{"t":"COTIZACIÓN CHALECOS INDUSTRIALES","d":"2026-01-23","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"VIDEO INSTITUCIONAL BLVD SUR","d":"2026-01-30","f":"2026-02-15","u":[],"b":"REVISADO"},{"t":"VIDEOS MARISA BLVD SUR","d":"2026-01-26","f":"2026-02-03","u":[],"b":"REVISADO"},{"t":"VIDEO DEPA TOUR \"TOMAS AMPLIAS\"","d":"2026-01-30","f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"GRILLA HITO URBANO","d":"2026-01-30","f":"2026-02-03","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"GRILLA DATABUT","d":"2026-01-30","f":"2026-02-03","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"TERMINAR PRESUPUESTO TRIMESTRE 01","d":"2026-01-26","f":"2026-02-03","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"BROCHURE BLVD SUR 2026","d":"2026-01-27","f":"2026-02-03","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"COLOCAR VALLAS PERIMETRALES","d":"2026-03-31","f":null,"u":["Jeferson Cifuentes"],"b":"ATRASADO"},{"t":"PRESENTACIÓN METODO DE TRABAJO ASESORES","d":"2026-02-02","f":"2026-02-20","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Plan de Trabajo y Resumen Reunión Wilma","d":"2026-02-05","f":"2026-02-20","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Actualizar cuadro de Presupuesto de Movimiento de Tierra y Contenciones. Costo Total","d":"2026-02-05","f":"2026-02-20","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Colocar Señalización de amenidades","d":"2026-02-19","f":"2026-02-20","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Mejorar Grilla DataBut","d":"2026-02-06","f":"2026-02-20","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Grilla Contenido Blvd Sur Febrero","d":"2026-02-05","f":"2026-02-20","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"COTIZACIÓN SEGURIDAD BVLS","d":null,"f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"COMPARATIVO FIREFLIES Y OTTER","d":null,"f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"COMPARATIVO CURSOS AUTODESK CIVIL 3D","d":null,"f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"COTIZACIÓN AUTODESK CIVIL 3D","d":null,"f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"Realizar cuadro de insumos actualizado","d":"2026-02-27","f":"2026-04-06","u":[],"b":"REVISADO"},{"t":"Solicitar pago Sankris Mall","d":"2026-02-12","f":"2026-02-20","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Grilla de contenido Periferia","d":"2026-02-13","f":"2026-02-20","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Entrega Brochure","d":"2026-02-13","f":"2026-02-20","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Elaborar carta para cliente ALEX CARRERA","d":"2026-02-18","f":"2026-02-20","u":["Paola Pena","Stefany Gil"],"b":"REVISADO"},{"t":"Cotzación Computadora PMI","d":null,"f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"COTIZACIÓN COMPU PMI","d":null,"f":"2026-02-20","u":[],"b":"REVISADO"},{"t":"Evaluar viabilidad de préstamo con acciones en garantía","d":"2026-02-26","f":"2026-03-02","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Validar con Miler la recuperación de acciones","d":"2026-03-05","f":"2026-03-02","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Validar estrategia con Gabriel y Miler de S.A. Operativa","d":"2026-02-26","f":"2026-03-02","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"3 Propuestas para Ordenes de Compra aprobadas en Quickbooks","d":"2026-03-05","f":"2026-03-12","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Realizar Escenario de G&T","d":"2026-02-26","f":"2026-03-02","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Realizar Escenario de Npunto","d":"2026-02-26","f":"2026-03-02","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Realizar escenario de bodegas","d":"2026-03-05","f":"2026-04-07","u":["Periferia Urbana","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Realizar escenario de renta de 72 apartamentos","d":"2026-04-10","f":"2026-05-29","u":["Sebastian Pimentel"],"b":"ATRASADO"},{"t":"Realizar escenarios financieros de estrategia de Fase 2","d":"2026-02-26","f":"2026-03-02","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Realizar matriz de incrementos de precios","d":"2026-02-19","f":"2026-02-20","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Entrega de Excel con Partidas finales","d":"2026-02-24","f":"2026-03-02","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Comparativo de Cotizaciones de Urbanización","d":"2026-02-26","f":"2026-03-09","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Cuantificación y PPTO interno de Torre de Parqueos F1","d":"2026-03-05","f":"2026-03-12","u":["Periferia Urbana","Gerardo Pirir"],"b":"REVISADO"},{"t":"Mover muro perimetral a línea verde más 4cm","d":"2026-02-28","f":"2026-03-24","u":[],"b":"REVISADO"},{"t":"Estrategia de parqueo provisional con SEINSA","d":"2026-03-05","f":"2026-03-24","u":[],"b":"REVISADO"},{"t":"Cotas Finales (Integrar estratos a movimiento de Tierra) (Sobrecosto)","d":"2026-03-12","f":"2026-03-12","u":[],"b":"REVISADO"},{"t":"Recibir segunda cotización de Urbanización","d":"2026-03-27","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"Revisión de contrato de movimiento de tierras","d":"2026-02-27","f":"2026-03-02","u":[],"b":"REVISADO"},{"t":"Mostrar avance de fechas en partidas de Excel","d":"2026-02-24","f":"2026-03-02","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Fechas finales de F1 (Iniciales y finales) en Excel de Partidas","d":"2026-02-26","f":"2026-03-02","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Planner de Obra con partidas y fechas añadidas","d":"2026-03-05","f":"2026-03-12","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Planificación NPUNTO Fase 1","d":"2026-04-08","f":"2026-05-29","u":["Jarin Daniel Monterroso Urias"],"b":"ATRASADO"},{"t":"Enviar correo a Npunto con planner de especialista de TA, TB y TC finalizado","d":"2026-02-20","f":"2026-02-25","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Quitar Fire-Pits y modificar Renders","d":"2026-02-26","f":"2026-03-03","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Dar seguimiento a Proveedores","d":"2026-02-26","f":"2026-03-02","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Correo con entregables de proveedores","d":"2026-02-19","f":"2026-02-20","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Habilitación de Banca SAT para Periferia Urbana y Nova Gestión","d":"2026-04-17","f":null,"u":["Dylan Augusto Callejas Castillo"],"b":"EN PROCESO"},{"t":"Obtener pólizas finales de seguros","d":"2026-03-15","f":"2026-03-18","u":["Periferia Urbana"],"b":"REVISADO"},{"t":"Terminar de organizar carpetas de Finanzas","d":"2026-04-30","f":"2026-03-28","u":[],"b":"REVISADO"},{"t":"Dar Reconocimiento Anual","d":"2026-03-13","f":"2026-03-18","u":[],"b":"REVISADO"},{"t":"Planificar actividad de convivencia de marzo 2026","d":"2026-02-27","f":"2026-02-27","u":[],"b":"REVISADO"},{"t":"Cotizar anuncio de wifi de acrilico","d":"2026-03-31","f":"2026-05-29","u":[],"b":"REVISADO"},{"t":"Cotizar una impresora con scaner","d":"2026-03-31","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"LOGO PODCAST","d":"2026-02-25","f":"2026-03-03","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Dar seguimineto Comunica","d":"2026-03-06","f":"2026-03-17","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"PAUTAS BLS","d":"2026-02-24","f":"2026-03-09","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"PAGINA WEB PERIFERIA","d":"2026-02-28","f":"2026-03-02","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"CAMPANA DE INVERIONISTA BLS","d":"2026-03-06","f":"2026-03-09","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"open house DIA DE VERANO","d":"2026-04-25","f":"2026-05-07","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"NOTA EN LINKED IN","d":"2026-03-07","f":"2026-03-09","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Cotizar 2 cámaras dentro de la obra","d":"2026-02-27","f":"2026-03-12","u":["Periferia Urbana"],"b":"REVISADO"},{"t":"Anuncio de Semana Santa","d":"2026-03-14","f":"2026-03-09","u":[],"b":"REVISADO"},{"t":"Curso de comunicación asertiva","d":"2026-04-10","f":"2026-06-08","u":["Periferia Urbana"],"b":"EN PAUSA"},{"t":"Realizar plan de acción de S.A. Operativa de Fase 2","d":"2026-04-16","f":"2026-06-08","u":["Periferia Urbana","Dylan Augusto Callejas Castillo"],"b":"ENTREGADO"},{"t":"Hablar con 3 financieras y traer propuestas para acciones en garantía","d":"2026-03-12","f":"2026-03-12","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Establecer un proceso para recepción de Npunto","d":"2026-03-12","f":"2026-03-12","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Revisar la eficiencia de m2 de Npunto en Fase 2","d":"2026-03-05","f":"2026-03-09","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Revisar eficiencia de m2 de Npunto en F2","d":"2026-03-05","f":"2026-03-09","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Cambios en Escenarios F2","d":"2026-03-05","f":"2026-03-09","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Agregar número de partida (Item) en Excel","d":"2026-03-05","f":"2026-03-09","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Mesa de trabajo de desembolsos para flujo y planner","d":"2026-03-05","f":"2026-03-09","u":["Jarin Daniel Monterroso Urias","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Matriz de Sobrecostos y Ahorro Final","d":"2026-03-05","f":"2026-03-09","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Elaborar plan de acción de zanjas","d":"2026-03-05","f":"2026-03-12","u":["Periferia Urbana"],"b":"REVISADO"},{"t":"Resultados de laboratorio para relleno estructural","d":"2026-03-16","f":"2026-03-24","u":["Periferia Urbana"],"b":"REVISADO"},{"t":"Validar con Wilma los grados para ahorro de relleno","d":"2026-03-05","f":"2026-03-24","u":[],"b":"REVISADO"},{"t":"Seguimiento de Proveedores","d":"2026-03-05","f":"2026-03-10","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Enviar indices a Montt y Npunto","d":"2026-03-03","f":"2026-03-04","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Cierre financiero febrero 2026","d":"2026-03-05","f":"2026-03-09","u":["Dylan Augusto Callejas Castillo","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Dar anticipo de atemporal electrica obra civil","d":"2026-03-05","f":"2026-03-09","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Informe de errores de Jorge Reyes","d":"2026-03-10","f":"2026-04-06","u":["Periferia Urbana","Gerardo Pirir"],"b":"REVISADO"},{"t":"ACTUALIZAR BROCHURE TORE A Y B CO NUEVO DISENO","d":"2026-03-20","f":"2026-03-19","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"HACER ARTE DE PROMOCION DEL MES","d":"2026-03-20","f":"2026-03-17","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"PONER BROCHURE NUEVO EN CARPET A DE COEMRCIAL","d":"2026-03-11","f":"2026-03-19","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"SUBIR PLANOS NUEVOS DE TORRE C","d":"2026-03-13","f":"2026-03-19","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Cofigurar Cotizador al contado","d":"2026-03-09","f":"2026-03-12","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"ARREGLAR GOOGLE","d":"2026-03-27","f":"2026-03-30","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"campanas de pauta fb e instagrma","d":"2026-03-13","f":"2026-03-25","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Compartir manuales y procesos a Joaquin y realizar documentos de procesos que faltan","d":"2026-04-09","f":"2026-04-06","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Dylan Cierre de comisiones","d":"2026-03-20","f":"2026-03-24","u":["Dylan Augusto Callejas Castillo","Stefany Gil"],"b":"REVISADO"},{"t":"ENTREGAR LICITACIONES Y ESPECIFICACIONES","d":"2026-03-11","f":"2026-03-12","u":[],"b":"REVISADO"},{"t":"Migración de información a Periferia Urbana","d":"2026-03-31","f":"2026-05-18","u":["Periferia Urbana","Christianee Barrios"],"b":"ATRASADO"},{"t":"Trazabilidad de Caja Chica JD","d":"2026-03-12","f":"2026-03-12","u":["Christianee Barrios","Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Cuantificación y presupuestación TC","d":"2026-03-26","f":"2026-04-15","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Revision de la otra semana de taludes","d":"2026-03-19","f":"2026-03-24","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Validación Legal y Técnica de Escenario F2","d":"2026-04-16","f":"2026-06-08","u":["Dylan Augusto Callejas Castillo"],"b":"ENTREGADO"},{"t":"Escenario de Bodegas","d":"2026-03-12","f":"2026-03-20","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Implementación de Bodegas","d":"2026-03-25","f":"2026-03-28","u":["Periferia Urbana","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Hablar con Financieras para créditos independientes de socios","d":"2026-03-31","f":"2026-04-15","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Levantar proceso de pagos extra-oficiales","d":"2026-04-09","f":"2026-04-13","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Instalación de Camaras de Seguridad en Obra","d":"2026-03-27","f":"2026-03-28","u":[],"b":"REVISADO"},{"t":"Presentación de Partidas Generales","d":"2026-03-19","f":"2026-04-06","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Aplicación en manual de politica de empleados","d":"2026-03-19","f":"2026-03-23","u":["Stefany Gil"],"b":"REVISADO"},{"t":"Realizar Escenario sensibilizado de BAM","d":"2026-03-19","f":"2026-03-25","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Escenario de Canje","d":"2026-03-31","f":"2026-04-06","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Enviar alcances técnicos a Joaquín para BL","d":"2026-03-13","f":"2026-03-24","u":[],"b":"REVISADO"},{"t":"Enviar correos de Jorge Reyes a Paola","d":"2026-03-13","f":"2026-03-24","u":[],"b":"REVISADO"},{"t":"Realizar plan de trabajo con cronograma de plataformas","d":"2026-03-19","f":"2026-03-20","u":[],"b":"REVISADO"},{"t":"Convocatoria en serie con mesa de trabajo de proveedores","d":"2026-03-19","f":"2026-03-24","u":[],"b":"REVISADO"},{"t":"Desarrollo y aprobación del reglamento de vecinos Fase 1","d":"2026-04-18","f":"2026-06-08","u":["Periferia Urbana","Christianee Barrios"],"b":"EN PAUSA"},{"t":"Presentación de analisis de CONLAB","d":"2026-03-17","f":"2026-03-24","u":[],"b":"REVISADO"},{"t":"Plan de Manejo Ambiental","d":"2026-03-19","f":"2026-03-24","u":[],"b":"REVISADO"},{"t":"Darle seguimiento a Wasyma","d":"2026-03-31","f":"2026-04-16","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Darle seguimiento a formulario de INAB","d":"2026-03-13","f":"2026-03-20","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Seguimiento a Npunto para cambio de diseños propuestos por Gerardo en F1","d":"2026-03-23","f":"2026-03-20","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Segumiento a especialistas para cambios en planificación de F1 por cambios propuestos por Gerardo","d":"2026-04-07","f":"2026-04-16","u":["Jarin Daniel Monterroso Urias","Gerardo Pirir"],"b":"REVISADO"},{"t":"Revisar con Paola los comentarios de archivo de entrega de Npunto","d":"2026-03-19","f":"2026-03-24","u":["Jarin Daniel Monterroso Urias","Periferia Urbana"],"b":"REVISADO"},{"t":"Subir planner a Project de APP","d":"2026-03-19","f":"2026-03-20","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Hablar con Terracon de fechas para actualización de modelo de bermas","d":"2026-03-19","f":"2026-05-04","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Informe de cambios de F1","d":"2026-03-16","f":"2026-03-20","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"comparativa de licencia MARN vs cuantificación","d":"2026-03-19","f":"2026-03-20","u":["Jarin Daniel Monterroso Urias","Gerardo Pirir"],"b":"REVISADO"},{"t":"Bases de licitaciones","d":"2026-03-20","f":"2026-04-07","u":[],"b":"REVISADO"},{"t":"Seguimiento de Proveedores sem 16/3 NPUNTO","d":"2026-03-19","f":"2026-03-28","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Consolidacion de insumos PERIFERIA URBANA","d":"2026-06-30","f":"2026-06-25","u":["Celeste Flores"],"b":"REVISADO"},{"t":"Consolidacion de insumos PERIFERIA URBANA","d":"2026-05-31","f":"2026-05-07","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Consolidacion de insumos PERIFERIA URBANA","d":"2026-04-30","f":"2026-05-07","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Consolidacion de insumos PERIFERIA URBANA","d":"2026-04-30","f":"2026-05-07","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Pendiente poliza de Seguro","d":"2026-04-25","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"MINUTAS DE JD","d":"2026-06-04","f":null,"u":["Celeste Flores"],"b":"REVISADO"},{"t":"MINUTAS DE JD","d":"2026-05-28","f":"2026-06-04","u":[],"b":"REVISADO"},{"t":"MINUTAS DE JD","d":"2026-05-21","f":"2026-05-29","u":[],"b":"REVISADO"},{"t":"MINUTAS DE JD","d":"2026-05-14","f":"2026-05-18","u":[],"b":"REVISADO"},{"t":"MINUTAS DE JD","d":"2026-05-07","f":"2026-05-08","u":[],"b":"REVISADO"},{"t":"MINUTAS DE JD","d":"2026-04-30","f":"2026-05-04","u":[],"b":"REVISADO"},{"t":"MINUTAS DE JD","d":"2026-04-23","f":"2026-05-04","u":[],"b":"REVISADO"},{"t":"OC DE COMPRA IVE ANA LUISA","d":"2026-03-25","f":"2026-03-24","u":["Stefany Gil"],"b":"REVISADO"},{"t":"CURSO DE CAPACITACION DE SEBASTIAN","d":"2026-03-31","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"ENVIAR SOLICITUD DE AGENDA","d":"2026-06-02","f":"2026-06-02","u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"ENVIAR SOLICITUD DE AGENDA","d":"2026-05-05","f":"2026-05-05","u":[],"b":"REVISADO"},{"t":"ENVIAR SOLICITUD DE AGENDA","d":"2026-04-27","f":"2026-05-04","u":[],"b":"REVISADO"},{"t":"ENVIAR SOLICITUD DE AGENDA","d":"2026-04-20","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"ENVIAR SOLICITUD DE AGENDA","d":"2026-04-13","f":"2026-03-31","u":[],"b":"REVISADO"},{"t":"ENVIAR SOLICITUD DE AGENDA","d":"2026-04-06","f":"2026-03-31","u":[],"b":"REVISADO"},{"t":"ENVIAR SOLICITUD DE AGENDA","d":"2026-03-30","f":"2026-03-31","u":[],"b":"REVISADO"},{"t":"ENVIAR SOLICITUD DE AGENDA","d":"2026-03-23","f":"2026-03-28","u":[],"b":"REVISADO"},{"t":"Pedir presentacion es de REUNIONES OPERATIVAS","d":"2026-04-15","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"LLAMADA DE ATENCION","d":"2026-03-18","f":"2026-03-18","u":[],"b":"REVISADO"},{"t":"VERIFICAR PUNTOS DE CLUB BI","d":"2026-04-06","f":"2026-04-06","u":[],"b":"REVISADO"},{"t":"MURO PERIMETRAL INGRESO A BLS","d":"2026-03-18","f":"2026-03-24","u":[],"b":"REVISADO"},{"t":"Cronograma de Obra","d":"2026-03-26","f":"2026-05-18","u":[],"b":"ATRASADO"},{"t":"Entrega de Cuantificaciones Torre de Parqueo","d":"2026-03-26","f":"2026-03-24","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Hacer Garita de entrada","d":"2026-03-22","f":"2026-05-04","u":[],"b":"REVISADO"},{"t":"COMPRAR 2 RADIOS DE SEGURIDAD","d":"2026-03-31","f":"2026-04-06","u":[],"b":"REVISADO"},{"t":"CARTA AGRADECIMINTO VISEGUA","d":"2026-03-31","f":"2026-04-13","u":[],"b":"REVISADO"},{"t":"SEGUIMIENTO WILMA DE LEÓN LABS.","d":"2026-03-31","f":"2026-03-28","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"SOLICITAR SIMS. CLARO","d":"2026-03-31","f":"2026-05-29","u":[],"b":"REVISADO"},{"t":"TABLA DE INGRESO SEGURIDAD","d":"2026-03-31","f":"2026-05-29","u":[],"b":"REVISADO"},{"t":"MANUAL DE MANEJO AMBIENTAL","d":"2026-03-26","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"Analisis de costos de acarreo de piedra pomez con selecto","d":"2026-03-26","f":"2026-04-06","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Matriz de ahorro y sobre costo","d":"2026-04-16","f":"2026-05-26","u":["Gerardo Pirir"],"b":"EN PAUSA"},{"t":"Revision con Status de planificacion","d":"2026-04-15","f":"2026-05-04","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Seguimiento de estructuras MONT","d":"2026-03-24","f":"2026-03-24","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Hacer plan de senaleticas de obra","d":"2026-03-27","f":"2026-04-06","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"AGENDAR REUNIÓN QUINCINAL CON JD, MILER Y FINANZAS","d":"2026-03-31","f":"2026-04-06","u":[],"b":"REVISADO"},{"t":"CONSEGUIR MACHOTES DE CONTRATOS - MILER","d":"2026-03-31","f":"2026-03-28","u":[],"b":"REVISADO"},{"t":"VER CONTRATO ACTUAL DE CELULARES VENTAS - Y ACTUALIZAR PLAN","d":"2026-03-31","f":"2026-04-06","u":[],"b":"REVISADO"},{"t":"REALIZAR COMPARATIVO BAÑO MAPRECO - SEGURIDAD BLS","d":"2026-03-31","f":"2026-03-28","u":[],"b":"REVISADO"},{"t":"REALIZAR UN FORMATO DE REGLAS OPERATIVAS DE SEGURIDAD","d":"2026-03-31","f":"2026-04-06","u":[],"b":"REVISADO"},{"t":"MINUTAS DIRECTIVAS","d":"2026-04-24","f":"2026-05-05","u":[],"b":"REVISADO"},{"t":"ORDEN CARPETA FINANZAS","d":"2026-04-30","f":"2026-05-29","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"CARPETA LEGAL PU","d":"2026-04-30","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"CUENTAS DE BANCOS","d":"2026-04-30","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"Idea creativa","d":"2026-03-31","f":"2026-04-06","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Control y actualización del flujo financiero de Boulevard Sur","d":"2026-04-10","f":"2026-04-21","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"AGENDAR NTREVISTAS PAO","d":"2026-03-31","f":"2026-03-28","u":[],"b":"REVISADO"},{"t":"Comprar Almohadillas Impresora","d":"2026-03-31","f":"2026-04-06","u":[],"b":"REVISADO"},{"t":"Consolidación de cotizaciones de proveedores del proyecto","d":"2026-04-10","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"SEGURIDAD INDUSTRIAL","d":"2026-03-27","f":"2026-05-18","u":[],"b":"ATRASADO"},{"t":"Limpiar residuos de MULTIBLOCK","d":"2026-03-25","f":"2026-04-07","u":[],"b":"REVISADO"},{"t":"PLAN DE MANEJO DE OBRA","d":"2026-03-27","f":"2026-05-18","u":[],"b":"ATRASADO"},{"t":"REVISAR CONTABILIDAD","d":"2026-04-10","f":"2026-05-26","u":["Christianee Barrios","Sebastian Pimentel"],"b":"ATRASADO"},{"t":"PLAN DE MERCADEO TRIMESTRAL","d":"2026-03-27","f":"2026-05-07","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"ACTUALZIACION DE PAPLERIA GYT","d":"2026-03-25","f":"2026-03-28","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"ENVIAR DATOS DE SEGURO","d":"2026-04-30","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"ANALISIS FINANCIERO BAM","d":"2026-03-27","f":"2026-04-06","u":["Christianee Barrios","Sebastian Pimentel"],"b":"REVISADO"},{"t":"ESTRUCTURAS FASE 2","d":"2026-03-31","f":"2026-04-06","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"MATRIZ DE PAGOS","d":"2026-04-16","f":"2026-04-21","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Registro de Marca BLS","d":"2026-04-08","f":"2026-03-31","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"REGISTRO DE MARCA PERIFERIA URBANA","d":"2026-04-30","f":"2026-05-05","u":["Stefany Gil"],"b":"REVISADO"},{"t":"REGISTRO DE APERTURA DE NUEVA SA","d":"2026-04-30","f":"2026-05-05","u":["Stefany Gil"],"b":"REVISADO"},{"t":"ESCRITURACION SAN JERONIMO","d":"2026-06-30","f":"2026-06-19","u":["Christianee Barrios","Stefany Gil"],"b":"EN PROCESO"},{"t":"Revisión de Contrato Contenciones","d":"2026-04-08","f":"2026-04-08","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Propuesta Tendederos F2","d":"2026-04-08","f":"2026-05-18","u":["Sebastian Pimentel"],"b":"EN PAUSA"},{"t":"Migración de información de planificación a ACC interna","d":"2026-04-10","f":"2026-05-26","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Video de Noche de las vistas","d":"2026-04-10","f":"2026-04-17","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Realizar correcciones en bases de Urbanización","d":"2026-04-10","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"Regularización contractual de proveedores del proyecto","d":"2026-05-11","f":"2026-06-08","u":["Christianee Barrios"],"b":"EN PAUSA"},{"t":"Cargar costo de SIMS para camaras","d":"2026-04-10","f":"2026-05-05","u":[],"b":"REVISADO"},{"t":"Optimización y control de servicios operativos (telecomunicaciones y pagos)","d":"2026-06-30","f":null,"u":["Celeste Flores"],"b":"ENTREGADO"},{"t":"Instlación de Wifi en Acrilico","d":"2026-04-17","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"Actualizar Plan de números disponibles asesores","d":"2026-07-07","f":null,"u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Comprar Radios de Seguridad","d":"2026-04-17","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"Reprogramación y alineación de instalación de elevadores con Elevatec","d":"2026-04-24","f":"2026-05-21","u":["Christianee Barrios"],"b":"ATRASADO"},{"t":"Actualizar diseño de Npunto de bodegas en F1 y F2 y tendederos F2","d":"2026-04-10","f":"2026-04-15","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Cotización de Refri","d":"2026-04-07","f":"2026-04-13","u":[],"b":"REVISADO"},{"t":"Cuantificación Urbanización","d":"2026-04-10","f":"2026-04-15","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"OC IVA MARZO 2025","d":"2026-04-10","f":"2026-05-05","u":[],"b":"REVISADO"},{"t":"Propuesta Laboral - Julio Valdez","d":"2026-04-07","f":"2026-04-13","u":[],"b":"REVISADO"},{"t":"COTIZACION SANJEO Y RELLENO","d":"2026-04-08","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"PLANO DE OBRA","d":"2026-04-10","f":"2026-04-13","u":[],"b":"REVISADO"},{"t":"1:1 Periferia","d":"2026-04-17","f":"2026-04-20","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Cierre marzo 2026","d":"2026-04-10","f":"2026-04-20","u":["Dylan Augusto Callejas Castillo","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Auditoría 2025 Finalizada","d":"2026-05-07","f":"2026-06-08","u":["Dylan Augusto Callejas Castillo"],"b":"ENTREGADO"},{"t":"Reparación de Portón Daho Pozos","d":"2026-04-10","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"Estructuración del esquema de trabajo CM – Residente","d":"2026-04-24","f":"2026-05-18","u":[],"b":"ATRASADO"},{"t":"Envío de planos firmados de desmembración","d":"2026-04-10","f":"2026-04-09","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Validación de aforo del pozo del proyecto","d":"2026-05-01","f":"2026-05-05","u":[],"b":"REVISADO"},{"t":"Alineación de frecuencia de reportes de obra con Nabla","d":"2026-04-27","f":"2026-05-21","u":[],"b":"ASIGNADO"},{"t":"Aprobación FHA para primera inspección del proyecto","d":"2026-05-11","f":"2026-07-07","u":["Jarin Daniel Monterroso Urias","Stefany Gil"],"b":"EN PROCESO"},{"t":"Escenario para hacer un muro perimetral de finca en F2","d":"2026-04-09","f":"2026-04-13","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"verificar costo Mercado de Capitales","d":"2026-04-10","f":"2026-04-16","u":[],"b":"REVISADO"},{"t":"RRHH","d":"2026-04-17","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"Organización y control de expedientes bancarios del proyecto","d":"2026-04-17","f":"2026-05-29","u":["Christianee Barrios"],"b":"ATRASADO"},{"t":"Consolidación y control de matriz de pagos del proyecto","d":"2026-04-14","f":"2026-05-07","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Políticas de Compras","d":"2026-04-20","f":"2026-04-27","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Formato de Uso de Salas","d":"2026-04-10","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"Comprar 2 Cubos de 20 WTS","d":"2026-04-09","f":"2026-04-13","u":[],"b":"REVISADO"},{"t":"Entrega de Análisis de Eficiencias Fase 2 (NABLA)","d":"2026-04-16","f":"2026-04-21","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Integraciones Contables EEFF diciembre 2025","d":"2026-04-09","f":"2026-04-14","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"OC MENSUALES ABRIL 2026","d":"2026-04-10","f":"2026-04-21","u":[],"b":"REVISADO"},{"t":"Validación de método de mezcla para estabilización de tierra","d":"2026-05-04","f":"2026-05-18","u":["Juan Carlos Pérez Estacuy"],"b":"ATRASADO"},{"t":"Adaptación de cronograma para Seguro Car","d":"2026-04-10","f":"2026-04-13","u":[],"b":"REVISADO"},{"t":"Reunión con Desnivel para aclaración técnica de contrato","d":"2026-04-10","f":"2026-04-13","u":[],"b":"REVISADO"},{"t":"Capacitación Usuario de Quickbooks y creación de Usuario","d":"2026-04-10","f":"2026-04-13","u":[],"b":"REVISADO"},{"t":"Instalación acometida eléctrica temporal del proyecto","d":"2026-04-24","f":"2026-05-21","u":["Juan Carlos Pérez Estacuy"],"b":"ATRASADO"},{"t":"Obtención de resolución DGAC del proyecto","d":"2026-04-30","f":"2026-07-07","u":["Jarin Daniel Monterroso Urias"],"b":"EN PROCESO"},{"t":"Diseño de Fase 2 del proyecto","d":"2026-05-14","f":"2026-05-29","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"Obtención de resolución de Salud del proyecto","d":"2026-05-04","f":null,"u":["Jarin Daniel Monterroso Urias"],"b":"EN PROCESO"},{"t":"Obtención de resolución INAB para Fase 1","d":"2026-04-20","f":"2026-05-25","u":["Jarin Daniel Monterroso Urias"],"b":"EN PROCESO"},{"t":"Gestión de permisos para Fase 2","d":"2026-05-31","f":"2026-06-15","u":["Jarin Daniel Monterroso Urias"],"b":"ASIGNADO"},{"t":"Evaluación y estructuración de canjes con proveedores","d":"2026-04-16","f":"2026-05-18","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Evaluación del impacto de costos de seguridad previo a ingreso de Nabla","d":"2026-04-16","f":"2026-04-16","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Validación de eficiencia de Fase 2 con base en tablas de Npunto","d":"2026-04-16","f":"2026-04-21","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Definición de resguardo de elevadores adelantados de Elevatec","d":"2026-04-30","f":"2026-05-07","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"Cierre y pago de comisiones comerciales de abril 2026","d":"2026-04-30","f":"2026-05-04","u":["Christianee Barrios","Stefany Gil"],"b":"REVISADO"},{"t":"Planner de Planificación","d":"2026-05-31","f":"2026-06-15","u":["Jarin Daniel Monterroso Urias"],"b":"ATRASADO"},{"t":"Escenarios Financieros jueves 23 de abril","d":"2026-04-23","f":"2026-05-04","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Aportes de Fase 2","d":"2026-04-30","f":"2026-05-07","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"Tareas administrativas semanales oficina","d":"2026-05-29","f":null,"u":["Celeste Flores"],"b":"EN PAUSA"},{"t":"Tareas administrativas semanales oficina","d":"2026-05-22","f":"2026-06-15","u":["Celeste Flores"],"b":"EN PAUSA"},{"t":"Tareas administrativas semanales oficina","d":"2026-05-15","f":"2026-06-08","u":[],"b":"EN PAUSA"},{"t":"Tareas administrativas semanales oficina","d":"2026-05-08","f":"2026-05-07","u":[],"b":"REVISADO"},{"t":"Tareas administrativas semanales oficina","d":"2026-05-01","f":"2026-05-05","u":[],"b":"REVISADO"},{"t":"Tareas administrativas semanales oficina","d":"2026-04-24","f":"2026-05-05","u":[],"b":"REVISADO"},{"t":"Anális Financiero de seguridad vs PPTO","d":"2026-04-23","f":"2026-04-27","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Evaluación de aportes F2","d":"2026-04-23","f":"2026-06-08","u":["Sebastian Pimentel"],"b":"EN PAUSA"},{"t":"Cierre abril 2026","d":"2026-05-14","f":"2026-05-18","u":["Dylan Augusto Callejas Castillo","Sebastian Pimentel"],"b":"REVISADO"},{"t":"Caja Chica Abril","d":"2026-04-25","f":"2026-05-04","u":["Jarin Daniel Monterroso Urias","Christianee Barrios"],"b":"REVISADO"},{"t":"Alineación de plan de trabajo entre Elevatec y Nabla","d":"2026-05-20","f":"2026-05-21","u":[],"b":"ASIGNADO"},{"t":"Entrega de Torre C","d":"2026-04-24","f":"2026-05-18","u":["Sebastian Pimentel"],"b":"ATRASADO"},{"t":"Agregar GOOGLE ANALITICS a Metricool","d":"2026-04-24","f":"2026-05-07","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Hacer cambios de material Podcast","d":"2026-04-24","f":"2026-05-18","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Hacer cambios Video BLS","d":"2026-04-24","f":"2026-05-07","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Corregir planos TC","d":"2026-05-01","f":"2026-05-19","u":["Jeferson Cifuentes"],"b":"ENTREGADO"},{"t":"ASESORIA DE KOMMO","d":"2026-04-30","f":null,"u":["Jeferson Cifuentes","Paola Pena"],"b":"EN PROCESO"},{"t":"Hacer brochure BLS Bifoliar","d":"2026-05-01","f":"2026-05-18","u":["Jeferson Cifuentes"],"b":"REVISADO"},{"t":"Flujo Periferia Urbana","d":"2026-05-31","f":"2026-05-26","u":["Sebastian Pimentel"],"b":"REVISADO"},{"t":"Comparativa de Urbanización","d":"2026-06-12","f":"2026-06-08","u":["Gerardo Pirir"],"b":"EN PAUSA"},{"t":"Cuantificación de hidrosanitarias Fase 1 TA/TB","d":"2026-05-12","f":"2026-05-18","u":["Gerardo Pirir"],"b":"REVISADO"},{"t":"Orden de Carpetas PMO PU","d":"2026-05-08","f":"2026-05-26","u":["Jarin Daniel Monterroso Urias","Gerardo Pirir"],"b":"REVISADO"},{"t":"Manual de Devoluciones","d":"2026-05-08","f":"2026-05-21","u":["Stefany Gil"],"b":"REVISADO"},{"t":"SEGUIMIENTO DEPURACIÓN INTEGRACIÓN CONTABLE – AUDITORÍA 2025","d":"2026-05-13","f":"2026-05-29","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"SEGUIMIENTO Y VALIDACIÓN PRESUPUESTOS ELÉCTRICOS Y SUBCONTRATOS","d":"2026-05-12","f":"2026-06-19","u":["Juan Carlos Pérez Estacuy"],"b":"ENTREGADO"},{"t":"SEGUIMIENTO DE LA DEFINICIÓN SUDS","d":"2026-05-14","f":null,"u":["Juan Carlos Pérez Estacuy"],"b":"EN PROCESO"},{"t":"PROCESO DE SELECCIÓN NUEVA FIRMA AUDITORA – AUDITORÍA 2026","d":"2026-06-04","f":null,"u":["Dylan Augusto Callejas Castillo"],"b":"EN PROCESO"},{"t":"CIERRE COMPARATIVO INSTALACIÓN BOMBA Y CASETA DE POZO","d":"2026-05-12","f":"2026-05-21","u":[],"b":"EN PROCESO"},{"t":"VALIDACIÓN TÉCNICA DE MEZCLAS PARA CUMPLIMIENTO","d":"2026-05-13","f":"2026-06-19","u":["Juan Carlos Pérez Estacuy"],"b":"ENTREGADO"},{"t":"CIERRE Y CONSOLIDACIÓN DE INCIDENCIAS – FASE 1 Y FASE 2","d":"2026-05-14","f":"2026-05-18","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"SEGUIMIENTO PLANIFICACIÓN Y LICENCIAS FASE 2","d":"2026-07-03","f":null,"u":["Jarin Daniel Monterroso Urias"],"b":"ASIGNADO"},{"t":"DEFINICIÓN ESTRATEGIA RED DE INGRESO Y GESTIÓN EEGSA","d":"2026-05-15","f":null,"u":["Jarin Daniel Monterroso Urias","Juan Carlos Pérez Estacuy"],"b":"EN PROCESO"},{"t":"Factura SOLIDO","d":"2026-05-22","f":"2026-05-29","u":["Dylan Augusto Callejas Castillo"],"b":"REVISADO"},{"t":"COMISIONES CUADRE PERIFERIA","d":"2026-05-21","f":"2026-06-17","u":["Sebastian Pimentel"],"b":"EN PROCESO"},{"t":"Levantar cobranza Torre B","d":"2026-05-29","f":"2026-06-09","u":["Stefany Gil"],"b":"ENTREGADO"},{"t":"Presentacion de BOMBA","d":"2026-05-15","f":"2026-06-08","u":["Juan Carlos Pérez Estacuy","Christianee Barrios"],"b":"ASIGNADO"},{"t":"ACABADOS FASE 2 REVISION FASE 2","d":"2026-05-22","f":"2026-05-29","u":["Jarin Daniel Monterroso Urias","Christianee Barrios"],"b":"REVISADO"},{"t":"CIERRE DE FASE 1","d":"2026-07-10","f":null,"u":["Jarin Daniel Monterroso Urias"],"b":"EN PROCESO"},{"t":"SEGURO MEDICO","d":"2026-05-22","f":"2026-06-09","u":["Celeste Flores","Stefany Gil"],"b":"ENTREGADO"},{"t":"Cotizar Sanjeo","d":"2026-07-04","f":null,"u":["Juan Carlos Pérez Estacuy"],"b":"ASIGNADO"},{"t":"IMAGENES DE REFERENCIA","d":"2026-05-27","f":"2026-06-05","u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"REVISAR AI","d":"2026-05-27","f":"2026-06-25","u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"SOCIEDAD PERIFERIA URBANA","d":"2026-06-05","f":"2026-06-01","u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Orden de Contabilidad","d":"2026-07-22","f":null,"u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Orden de Contabilidad","d":"2026-08-04","f":"2026-06-15","u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Orden de Contabilidad","d":"2026-07-04","f":"2026-06-15","u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Orden de Contabilidad","d":"2026-06-04","f":"2026-06-10","u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"ORDEN DE CAMBIO FASE 2","d":"2026-05-29","f":"2026-05-29","u":["Jarin Daniel Monterroso Urias"],"b":"ASIGNADO"},{"t":"ORDEN DE COMPRA MARS","d":"2026-05-27","f":"2026-06-04","u":["Gerardo Pirir"],"b":"ENTREGADO"},{"t":"Cotización impresora","d":null,"f":"2026-06-01","u":["Celeste Flores"],"b":"ENTREGADO"},{"t":"ENTREGAR  CRONOGRAMA DE FECHAS DE CAMBIOS FASE 1","d":"2026-06-02","f":"2026-06-08","u":["Jarin Daniel Monterroso Urias","Juan Carlos Pérez Estacuy"],"b":"ASIGNADO"},{"t":"ENVIAR ORDEN DE CAMBIO FASE 2","d":"2026-05-28","f":"2026-05-29","u":["Jarin Daniel Monterroso Urias"],"b":"ASIGNADO"},{"t":"ACTUALIZACION DE COTIZACIONES DE ESPECIALISTAS","d":"2026-06-04","f":"2026-06-26","u":["Jarin Daniel Monterroso Urias"],"b":"EN PROCESO"},{"t":"REGALO DEL AÑO","d":"2026-06-30","f":null,"u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"ESTABLECER  CRONOGRAMA DE OBRA","d":"2026-06-08","f":"2026-06-08","u":["Gerardo Pirir","Juan Carlos Pérez Estacuy"],"b":"ENTREGADO"},{"t":"PRESENTAR NUEVA POLICITA DE COMPRA","d":"2026-06-04","f":null,"u":["Mynor Pérez"],"b":"ENTREGADO"},{"t":"Cargar archivo de presupuesto","d":"2026-06-03","f":"2026-06-23","u":["Gerardo Pirir"],"b":"ENTREGADO"},{"t":"Reasignacion de parqueo","d":"2026-06-04","f":"2026-06-17","u":["Sebastian Pimentel"],"b":"ENTREGADO"},{"t":"Cierre Mayo 2026","d":null,"f":"2026-06-12","u":["Dylan Augusto Callejas Castillo","Sebastian Pimentel"],"b":"ENTREGADO"},{"t":"ENTREGA ANTE PRESUPUESTO FASE 2","d":"2026-07-07","f":null,"u":["Gerardo Pirir","Juan Carlos Pérez Estacuy"],"b":"EN PROCESO"},{"t":"ESCENARIO FASE 2","d":"2026-06-11","f":null,"u":["Christianee Barrios","Sebastian Pimentel"],"b":"CAMBIOS"},{"t":"ENVIAR ESTUDIO DE SUELOS A MARS","d":"2026-06-04","f":"2026-06-08","u":["Jarin Daniel Monterroso Urias"],"b":"REVISADO"},{"t":"ACTUALIZACION DE OC","d":"2026-06-04","f":"2026-06-08","u":["Jarin Daniel Monterroso Urias","Juan Carlos Pérez Estacuy"],"b":"ASIGNADO"},{"t":"FECHAS DE NABLA","d":"2026-06-08","f":"2026-06-08","u":["Juan Carlos Pérez Estacuy"],"b":"ASIGNADO"},{"t":"PLAN DE MERCADEO 3 TRIMESTRE","d":"2026-06-20","f":null,"u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"TRAMITE DE PH Y ASOCIACION DE VECINOS","d":"2026-06-30","f":null,"u":["Stefany Gil"],"b":"EN PROCESO"},{"t":"NPUNTO ARQUITECTURA","d":null,"f":"2026-06-15","u":["Jarin Daniel Monterroso Urias","Sebastian Pimentel"],"b":"ENTREGADO"},{"t":"104 TORRE C","d":"2026-06-25","f":null,"u":["Periferia Urbana","Stefany Gil"],"b":"ASIGNADO"},{"t":"SOLICITAR INFORMACIÓN SITÚA","d":"2026-06-12","f":"2026-06-15","u":["Jeferson Cifuentes"],"b":"ENTREGADO"},{"t":"Tareas administrativas - oficina","d":"2026-06-10","f":null,"u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Presentacion de Proceso de Escrituracion","d":"2026-06-18","f":"2026-06-19","u":["Stefany Gil"],"b":"ENTREGADO"},{"t":"RRHH","d":"2026-06-30","f":null,"u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Subir audios de minutas","d":"2026-06-17","f":"2026-06-16","u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Validar estructuras de fase 2","d":"2026-06-16","f":"2026-06-15","u":["Jarin Daniel Monterroso Urias"],"b":"ASIGNADO"},{"t":"Cambiar Pautas","d":"2026-06-16","f":null,"u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"DASHBOARD MERCADEO","d":"2026-06-19","f":null,"u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"NORVIA, S.A.","d":"2026-06-26","f":"2026-06-26","u":["Celeste Flores","Christianee Barrios"],"b":"ASIGNADO"},{"t":"Presentacion de Condado Eliat con NORVIA","d":"2026-07-02","f":null,"u":["Dylan Augusto Callejas Castillo"],"b":"ENTREGADO"},{"t":"PPT de proceso de pago que se establecio","d":"2026-06-25","f":null,"u":["Dylan Augusto Callejas Castillo"],"b":"ENTREGADO"},{"t":"ELECCION DE CONTABILIDAD","d":"2026-06-26","f":null,"u":["Christianee Barrios"],"b":"ASIGNADO"},{"t":"CONTRATO DE LIMO","d":"2026-06-19","f":"2026-06-19","u":["Christianee Barrios"],"b":"REVISADO"},{"t":"ENDOSAR ACCIONES NPM","d":"2026-06-23","f":"2026-06-25","u":["Celeste Flores","Christianee Barrios"],"b":"ASIGNADO"},{"t":"Cierres Periferia Urbana","d":"2026-06-21","f":"2026-06-26","u":["Sebastian Pimentel"],"b":"ENTREGADO"},{"t":"Orden de Cambio","d":"2026-06-18","f":"2026-06-26","u":["Sebastian Pimentel"],"b":"ENTREGADO"},{"t":"Cambio de Gestion Administrativa","d":"2026-06-19","f":null,"u":["Sebastian Pimentel"],"b":"ENTREGADO"},{"t":"Presentar Politica de cobros","d":"2026-07-02","f":null,"u":["Sebastian Pimentel"],"b":"ASIGNADO"},{"t":"Apertura de Inversion Enganches","d":"2026-07-02","f":null,"u":["Dylan Augusto Callejas Castillo"],"b":"ASIGNADO"},{"t":"Presentacion de aporte de capital fase 2","d":"2026-06-25","f":null,"u":["Dylan Augusto Callejas Castillo"],"b":"ASIGNADO"},{"t":"Estrategia de movimiento de capital de parqueos","d":"2026-07-02","f":null,"u":["Sebastian Pimentel"],"b":"ENTREGADO"},{"t":"Validacion de ESTUDIOS DE SUELOS FASE 2","d":"2026-07-23","f":"2026-06-26","u":["Jarin Daniel Monterroso Urias"],"b":"ASIGNADO"},{"t":"Presentacion de politica de clientes referidos","d":"2026-06-25","f":null,"u":["Dylan Augusto Callejas Castillo","Stefany Gil"],"b":"ASIGNADO"},{"t":"LICENCIA FASE 2","d":"2026-06-19","f":"2026-06-26","u":["Christianee Barrios"],"b":"ASIGNADO"},{"t":"DIAGRAMA DE ESTRUCTURA FASE 1 Y FASE 2","d":"2026-06-25","f":null,"u":["Christianee Barrios"],"b":"EN PROCESO"},{"t":"CONTROL LEGAL DE POR SA","d":"2026-06-25","f":null,"u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Correncion de ductos de parqueo elevadores","d":"2026-06-22","f":null,"u":["Gerardo Pirir","Mynor Pérez"],"b":"EN PROCESO"},{"t":"Enviar incidencia NPUNTO","d":"2026-06-23","f":"2026-07-02","u":["Jarin Daniel Monterroso Urias","Sebastian Pimentel"],"b":"ENTREGADO"},{"t":"Presentar ducto contadores para fase 2","d":"2026-06-25","f":"2026-07-02","u":["Jarin Daniel Monterroso Urias","Gerardo Pirir","Juan Carlos Pérez Estacuy"],"b":"EN PROCESO"},{"t":"LISTADO DE MUEBLES DE BANOS","d":"2026-06-25","f":"2026-06-25","u":["Stefany Gil"],"b":"ENTREGADO"},{"t":"REGURIZACION DE COMPRAS","d":"2026-06-25","f":null,"u":["Mynor Pérez"],"b":"ASIGNADO"},{"t":"PUBLICACION DE PAGINA BI","d":"2026-06-25","f":"2026-06-24","u":["Jeferson Cifuentes","Stefany Gil"],"b":"ENTREGADO"},{"t":"REVISION FASE 2","d":"2026-06-26","f":"2026-07-02","u":["Jarin Daniel Monterroso Urias","Gerardo Pirir","Juan Carlos Pérez Estacuy","Sebastian Pimentel"],"b":"EN PROCESO"},{"t":"BAKC OFFICE","d":null,"f":null,"u":["Dulce Montenegro"],"b":"ASIGNADO"},{"t":"Realizar hoja membretada de todas las S.A.","d":"2026-06-30","f":null,"u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"Realizar Estudio de Mercado para Fase 2 Banco","d":"2026-07-28","f":null,"u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"Presentación de Propuestas Especialistas - ACT","d":"2026-06-25","f":"2026-06-26","u":["Jarin Daniel Monterroso Urias"],"b":"ASIGNADO"},{"t":"Realizar cuadro de asignación de computadoras y celulares con identificación por equipo","d":"2026-06-30","f":null,"u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"PROCESOS","d":"2026-07-06","f":null,"u":["Gerardo Pirir"],"b":"EN PROCESO"},{"t":"Levantar Presentación diaria de video de obra y bitacora","d":"2026-06-24","f":null,"u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"Aperturar cuenta de BI Monetaria GTQ","d":"2026-07-15","f":null,"u":["Celeste Flores"],"b":"ASIGNADO"},{"t":"ACTUALIZAR FICHA TÉCNICA BLVD SUR","d":"2026-06-30","f":"2026-07-07","u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"Cierre Junio 2026","d":null,"f":null,"u":["Christianee Barrios","Sebastian Pimentel"],"b":"ASIGNADO"},{"t":"Agregar costos a excel de orden de cambio","d":"2026-07-07","f":null,"u":["Gerardo Pirir"],"b":"ASIGNADO"},{"t":"Actualizar control de Planificacion Fase 2","d":"2026-07-16","f":null,"u":["Jarin Daniel Monterroso Urias"],"b":"ASIGNADO"},{"t":"VALIDACION DE TAREAS DIARIAS DE PERSONAL","d":"2026-07-07","f":null,"u":["Christianee Barrios"],"b":"ASIGNADO"},{"t":"Enviar cambios de FHA en incidencias MARS fase 2","d":"2026-07-03","f":"2026-07-07","u":["Jarin Daniel Monterroso Urias"],"b":"ASIGNADO"},{"t":"Flowchart Trimestral y Revisión PPTO F1","d":"2026-07-08","f":null,"u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"Revisión PPTO F2","d":"2026-07-10","f":null,"u":["Jeferson Cifuentes"],"b":"ASIGNADO"},{"t":"Validar propuesta Legal","d":"2026-07-08","f":null,"u":["Christianee Barrios"],"b":"ASIGNADO"},{"t":"Validación de Machote Informe de Obra Trimestral","d":"2026-07-09","f":null,"u":["Juan Carlos Pérez Estacuy","Christianee Barrios"],"b":"ASIGNADO"},{"t":"Hacer PPT Institucional Banco F2","d":"2026-07-10","f":null,"u":["Christianee Barrios"],"b":"ASIGNADO"},{"t":"Realizar Estudio de Mercado Fase2","d":"2026-08-07","f":null,"u":["Jeferson Cifuentes","Periferia Urbana","Paola Pena"],"b":"ASIGNADO"},{"t":"Definir cuarto ELECTRICO","d":"2026-07-10","f":null,"u":["Gerardo Pirir","Juan Carlos Pérez Estacuy"],"b":"ASIGNADO"}]};
+/*__SNAPSHOT_END__*/
+const SCOPES = ["User.Read","Tasks.Read","User.ReadBasic.All"];
+const GRAPH = "https://graph.microsoft.com/v1.0";
+const REFRESH_MS = 5*60*1000;
+
+const $ = id => document.getElementById(id);
+
+/* ================= estado ================= */
+let msalApp = null, account = null, plan = null;
+let tasks = [];          // [{title, dueDate, doneDate, users:[{id,name}], status}]
+let userNames = {};      // id -> displayName
+let demoMode = false, refreshTimer = null;
+
+/* ================= utilidades de fecha ================= */
+const dayKey = iso => iso ? iso.slice(0,10) : null;            // compara por día
+const fmt = k => k ? k.split("-").reverse().join("/") : "—";
+const todayKey = () => new Date().toISOString().slice(0,10);
+
+function classify(t){
+  if (t.doneDate){
+    if (!t.dueDate) return "nodate";
+    return t.doneDate <= t.dueDate ? "ontime" : "late";
+  }
+  if (t.dueDate && t.dueDate < todayKey()) return "overdue";
+  return "open";
+}
+const STATUS_META = {
+  ontime:{label:"✔ Entregada a tiempo", pill:"ok"},
+  late:{label:"✖ Entregada tarde", pill:"no"},
+  nodate:{label:"Entregada · sin fecha", pill:"gy"},
+  overdue:{label:"⚠ Vencida sin entregar", pill:"wa"},
+  open:{label:"Pendiente en plazo", pill:"gy"},
+};
+
+/* ================= MSAL / Graph ================= */
+function initMsal(){
+  if (typeof msal === "undefined") throw new Error("No se pudo cargar la librería de autenticación de Microsoft (revisa la conexión a internet y recarga la página).");
+  if (!store.clientId) return null;
+  if (msalApp) return msalApp;
+  msalApp = new msal.PublicClientApplication({
+    auth:{
+      clientId: store.clientId,
+      authority: "https://login.microsoftonline.com/" + store.tenant,
+      redirectUri: location.origin + location.pathname
+    },
+    cache:{ cacheLocation:"localStorage" }
+  });
+  return msalApp;
+}
+
+async function getToken(interactive){
+  const app = initMsal();
+  await app.initialize();
+  const red = await app.handleRedirectPromise();
+  if (red && red.account) account = red.account;
+  if (!account) account = app.getAllAccounts()[0] || null;
+  if (account){
+    try{
+      const r = await app.acquireTokenSilent({scopes:SCOPES, account});
+      return r.accessToken;
+    }catch(e){ if(!interactive) throw e; }
+  }
+  if (!interactive) throw new Error("Sesión no iniciada");
+  try{
+    const r = await app.loginPopup({scopes:SCOPES});
+    account = r.account;
+    return r.accessToken;
+  }catch(e){
+    // popup bloqueado (p. ej. dentro de Teams) → flujo por redirección
+    if (/popup|window/i.test(String(e))){ await app.loginRedirect({scopes:SCOPES}); return null; }
+    throw e;
+  }
+}
+
+async function g(token, url){
+  const r = await fetch(url.startsWith("http") ? url : GRAPH+url, {headers:{Authorization:"Bearer "+token}});
+  if (!r.ok) throw new Error("Graph "+r.status+" en "+url+": "+(await r.text()).slice(0,300));
+  return r.json();
+}
+
+async function gAll(token, url){ // sigue @odata.nextLink
+  let out=[], next=url;
+  while(next){ const j=await g(token,next); out=out.concat(j.value||[]); next=j["@odata.nextLink"]; }
+  return out;
+}
+
+async function resolveNames(token, ids){
+  const missing=[...new Set(ids)].filter(id=>!userNames[id]);
+  for (let i=0;i<missing.length;i+=20){
+    const batch = missing.slice(i,i+20);
+    const body = {requests: batch.map((id,n)=>({id:String(n), method:"GET", url:"/users/"+id+"?$select=displayName,id"}))};
+    try{
+      const r = await fetch(GRAPH+"/$batch",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify(body)});
+      const j = await r.json();
+      (j.responses||[]).forEach(resp=>{
+        const id = batch[Number(resp.id)];
+        userNames[id] = (resp.status===200 && resp.body && resp.body.displayName) ? resp.body.displayName : "Usuario "+id.slice(0,8);
+      });
+    }catch(e){ batch.forEach(id=>userNames[id]="Usuario "+id.slice(0,8)); }
+  }
+}
+
+async function loadFromPlanner(interactive){
+  setBusy(true); hideError();
+  try{
+    if (!store.clientId){ openCfg("Falta el Client ID: pide a TI el registro de la aplicación (instrucciones en ⚙ Configuración) o usa los datos de ejemplo."); setBusy(false); return; }
+    const token = await getToken(interactive);
+    if (token === null) return; // redirigiendo a login
+    setConn("on","Conectado como "+(account?.name || account?.username || "usuario"));
+
+    // 1) localizar el plan: por ID directo y, si no, por nombre
+    plan = null;
+    if (store.planId){
+      try{ plan = await g(token, "/planner/plans/"+store.planId); }
+      catch(e){ /* ID inválido o sin acceso: probamos por nombre */ }
+    }
+    if (!plan){
+      const plans = await gAll(token, "/me/planner/plans");
+      const wanted = store.planName.toLowerCase();
+      plan = plans.find(p=>(p.title||"").toLowerCase().includes(wanted)) || null;
+      if (!plan){
+        const names = plans.map(p=>p.title).join(" · ") || "ninguno";
+        throw new Error("No pude abrir el plan (ID: "+(store.planId||"—")+") ni encontrar uno que contenga \""+store.planName+"\". Planes visibles con tu cuenta: "+names+". Revisa ⚙ Configuración y que tu cuenta sea miembro del plan.");
+      }
+    }
+    $("planBadge").textContent = "Plan: "+plan.title;
+
+    // 2) tareas y depósitos del plan
+    const raw = await gAll(token, "/planner/plans/"+plan.id+"/tasks");
+    let bucketNames = {};
+    try{ (await gAll(token, "/planner/plans/"+plan.id+"/buckets")).forEach(b=>bucketNames[b.id]=b.name); }catch(e){}
+
+    // 3) nombres de los asignados
+    const ids = raw.flatMap(t=>Object.keys(t.assignments||{}));
+    await resolveNames(token, ids);
+
+    tasks = raw.map(t=>({
+      title: t.title,
+      dueDate: dayKey(t.dueDateTime),
+      doneDate: t.percentComplete===100 ? dayKey(t.completedDateTime) || todayKey() : null,
+      users: Object.keys(t.assignments||{}).map(id=>({id, name:userNames[id]||id})),
+      bucket: bucketNames[t.bucketId] || "",
+    }));
+    demoMode = false;
+    afterLoad();
+  }catch(e){
+    showError(e.message||String(e));
+    setConn(account?"on":"err", account?("Conectado como "+(account.name||account.username)):"Error de conexión");
+  }
+  setBusy(false);
+}
+
+/* ================= corte del Excel (snapshot) ================= */
+function loadSnapshot(){
+  if (!SNAPSHOT) return false;
+  demoMode = true; // sin auto-refresco: es un corte estático
+  plan = {title: SNAPSHOT.plan};
+  $("planBadge").textContent = "Plan: "+SNAPSHOT.plan+" · corte "+fmt(SNAPSHOT.exported);
+  tasks = SNAPSHOT.tasks.map(x=>({
+    title: x.t,
+    dueDate: x.d || null,
+    doneDate: x.f || null,
+    users: (x.u||[]).map(n=>({id:n, name:n})),
+    bucket: x.b || "",
+  }));
+  setConn("on","Corte del Planner al "+fmt(SNAPSHOT.exported)+" (export de Excel) — usa “Conectar con Microsoft” para datos en vivo");
+  afterLoad();
+  $("refreshMeta").textContent = "Corte estático del "+fmt(SNAPSHOT.exported);
+  $("lastSync").innerHTML = "Corte de datos: <b>"+fmt(SNAPSHOT.exported)+"</b> · con conexión se actualiza en vivo";
+  return true;
+}
+
+/* ================= datos de ejemplo ================= */
+function loadDemo(){
+  demoMode = true; plan = {title:"Periferia Urbana (ejemplo)"};
+  $("planBadge").textContent = "Plan: Periferia Urbana · DATOS DE EJEMPLO";
+  const team = ["Paola Martínez","Carlos Ruiz","Ana López","Jorge Díaz","María Chen"];
+  const base = new Date(); base.setDate(base.getDate()-45);
+  const D = n => { const d=new Date(base); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+  let seed = 7; const rnd = () => (seed = (seed*16807)%2147483647) / 2147483647;
+  tasks = [];
+  const verbs=["Revisión de","Entrega de","Aprobación de","Cotización de","Informe de","Inspección de","Trámite de","Pago a"];
+  const objs=["planos F2","licencias municipales","proveedores","avance de obra","presupuesto mensual","topografía","escrituras","contratistas","permisos ambientales","mercadeo"];
+  for(let i=0;i<58;i++){
+    const u = team[Math.floor(rnd()*team.length)];
+    const due = Math.floor(rnd()*50);
+    const hasDue = rnd()>0.12;
+    const done = rnd()>0.28;
+    const slip = rnd()>0.62 ? Math.ceil(rnd()*7) : -Math.floor(rnd()*3);
+    tasks.push({
+      title: verbs[i%verbs.length]+" "+objs[Math.floor(rnd()*objs.length)],
+      dueDate: hasDue ? D(due) : null,
+      doneDate: done ? D(Math.max(0,due+ (hasDue?slip:0))) : null,
+      users: [{id:u, name:u}],
+    });
+  }
+  setConn("on","Modo de ejemplo (sin conexión) — usa “Conectar con Microsoft” para datos reales");
+  afterLoad();
+}
+
+/* ================= filtros + agregación ================= */
+function currentFilter(){
+  return { user: $("fUser").value, bucket: $("fBucket").value, period: $("fPeriod").value, status: $("fStatus").value };
+}
+
+function periodStart(p){
+  if (p==="all") return null;
+  const d = new Date();
+  if (p==="mtd") return d.toISOString().slice(0,8)+"01";
+  d.setDate(d.getDate()-Number(p));
+  return d.toISOString().slice(0,10);
+}
+
+function filteredTasks(){
+  const f = currentFilter(), start = periodStart(f.period);
+  return tasks.filter(t=>{
+    const st = classify(t);
+    if (f.status!=="all" && st!==f.status) return false;
+    if (f.user && !t.users.some(u=>u.name===f.user)) return false;
+    if (f.bucket && t.bucket!==f.bucket) return false;
+    if (start){
+      const ref = t.doneDate || t.dueDate; // completadas por fecha de completado; pendientes por fecha límite
+      if (ref && ref < start) return false;
+      if (!ref) return true; // sin ninguna fecha: siempre visible
+    }
+    return true;
+  });
+}
+
+function aggregateByUser(list){
+  const m = {};
+  list.forEach(t=>{
+    const st = classify(t);
+    const us = t.users.length ? t.users : [{name:"Sin asignar"}];
+    us.forEach(u=>{
+      const r = m[u.name] || (m[u.name]={user:u.name,total:0,done:0,ontime:0,late:0,nodate:0,open:0,overdue:0});
+      r.total++; r[st]++;
+      if (st==="ontime"||st==="late"||st==="nodate") r.done++;
+    });
+  });
+  return Object.values(m).sort((a,b)=>(b.ontime+b.late)-(a.ontime+a.late) || b.total-a.total);
+}
+
+/* ================= render ================= */
+function afterLoad(){
+  // poblar combo de usuarios (conserva selección)
+  const sel = $("fUser"), prev = sel.value;
+  const names = [...new Set(tasks.flatMap(t=>t.users.map(u=>u.name)))].sort((a,b)=>a.localeCompare(b,"es"));
+  sel.innerHTML = '<option value="">Todos los usuarios</option>' + names.map(n=>`<option>${esc(n)}</option>`).join("");
+  if (names.includes(prev)) sel.value = prev;
+  const bsel = $("fBucket"), bprev = bsel.value;
+  const ORDER = ["ASIGNADO","EN PROCESO","CAMBIOS","EN PAUSA","ATRASADO","ENTREGADO","REVISADO"];
+  const buckets = [...new Set(tasks.map(t=>t.bucket).filter(Boolean))]
+    .sort((a,b)=>{const ia=ORDER.indexOf(a),ib=ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b,"es");});
+  bsel.innerHTML = '<option value="">Todos los depósitos</option>' + buckets.map(n=>`<option>${esc(n)}</option>`).join("");
+  if (buckets.includes(bprev)) bsel.value = bprev;
+  $("btnRefresh").disabled = demoMode;
+  $("lastSync").innerHTML = "Última actualización: <b>"+new Date().toLocaleString("es-GT")+"</b>";
+  render();
+  armAutoRefresh();
+}
+
+function render(){
+  const list = filteredTasks();
+  const rows = aggregateByUser(list);
+  const f = currentFilter();
+
+  // KPIs a nivel tarea (la vista por usuario cuenta una tarea por cada asignado)
+  const cnt = {ontime:0,late:0,nodate:0,open:0,overdue:0};
+  list.forEach(t=>cnt[classify(t)]++);
+  const {ontime, late, overdue, nodate, open} = cnt;
+  // exigibles = entregadas con fecha de entrega + pendientes ya vencidas
+  const exigibles = ontime+late+overdue;
+  const pct = exigibles ? Math.round(ontime/exigibles*100) : null;
+
+  $("kPct").textContent = pct===null ? "—" : pct+"%";
+  $("kOnTime").textContent = ontime;
+  $("kOnTimeSub").textContent = exigibles ? Math.round(ontime/exigibles*100)+"% de las "+exigibles+" exigibles a la fecha" : "sin tareas exigibles en el filtro";
+  $("kLate").textContent = late;
+  $("kLateSub").textContent = exigibles ? Math.round(late/exigibles*100)+"% de las "+exigibles+" exigibles a la fecha" : " ";
+  $("kOverdue").textContent = overdue;
+  const done = ontime+late+nodate;
+  $("kTotal").textContent = list.length ? Math.round(done/list.length*100)+"%" : "—";
+  $("kTotalSub").textContent = done+" de "+list.length+" tareas completadas · en plazo: "+open;
+  $("scopeTag").textContent = "· "+($("fUser").value||"todos los usuarios")+($("fBucket").value?" · "+$("fBucket").value.toLowerCase():"")+" · "+$("fPeriod").selectedOptions[0].text.toLowerCase();
+
+  renderChart(rows);
+  renderUserTable(rows);
+  renderTaskTable(list);
+  $("dash").style.opacity = 1;
+}
+
+function renderChart(rows){
+  const box = $("chartUsers"), axis = $("chartAxis");
+  const top = rows.filter(r=>r.ontime+r.late>0).slice(0,16);
+  if (!top.length){
+    box.innerHTML = '<div class="empty">No hay tareas completadas con fecha límite en el filtro actual</div>';
+    axis.innerHTML = "";
+    return;
+  }
+  const max = Math.max(...top.map(r=>r.ontime+r.late));
+  box.innerHTML = top.map(r=>{
+    const wd = r.ontime+r.late+r.overdue, pct = Math.round(r.ontime/wd*100);
+    const tip = `${r.user}: ✔ ${r.ontime} a tiempo · ✖ ${r.late} tarde · ⚠ ${r.overdue} vencidas sin entregar · cumplimiento ${pct}%`;
+    const seg = (n,cls)=> n>0 ? `<div class="seg ${cls}" style="width:${(n/max*100).toFixed(2)}%"></div>` : "";
+    return `<div class="hrow" title="${esc(tip)}">
+      <div class="hname">${esc(r.user)}</div>
+      <div class="htrack">${seg(r.ontime,"ot")}${seg(r.late,"lt")}</div>
+      <div class="hvals"><b class="g">✔ ${r.ontime}</b> · <b class="r">✖ ${r.late}</b> · ${pct}%</div>
+    </div>`;
+  }).join("");
+  const mid = Math.round(max/2);
+  axis.innerHTML = `<div></div><div class="ticks"><span>0</span><span>${mid}</span><span>${max} tareas</span></div><div></div>`;
+}
+
+function renderUserTable(rows){
+  const tb = $("tblUsers").querySelector("tbody");
+  const tf = $("tblUsers").querySelector("tfoot");
+  if (!rows.length){ tb.innerHTML = '<tr><td colspan="9" class="empty">No hay tareas con el filtro actual</td></tr>'; tf.innerHTML=""; return; }
+  const maxDone = Math.max(...rows.map(r=>r.done),1);
+  tb.innerHTML = rows.map(r=>{
+    const wd=r.ontime+r.late+r.overdue, pct = wd? Math.round(r.ontime/wd*100) : null;
+    const pill = pct===null ? '<span class="pill gy">s/d</span>' : `<span class="pill ${pct>=80?"ok":pct>=50?"wa":"no"}">${pct}%</span>`;
+    return `<tr>
+      <td>${esc(r.user)}</td><td>${r.total}</td>
+      <td class="bar-cell"><div class="barfill" style="width:${r.done/maxDone*100}%"></div><span>${r.done}</span></td>
+      <td class="pos">${r.ontime}</td><td class="neg">${r.late}</td><td>${r.nodate}</td>
+      <td>${r.open}</td><td style="color:var(--warn);font-weight:600">${r.overdue}</td><td>${pill}</td>
+    </tr>`;
+  }).join("");
+  const s = k => rows.reduce((a,r)=>a+r[k],0);
+  const wd=s("ontime")+s("late")+s("overdue");
+  tf.innerHTML = `<tr><td>Total</td><td>${s("total")}</td><td>${s("done")}</td><td>${s("ontime")}</td><td>${s("late")}</td><td>${s("nodate")}</td><td>${s("open")}</td><td>${s("overdue")}</td><td>${wd?Math.round(s("ontime")/wd*100)+"%":"—"}</td></tr>`;
+}
+
+function renderTaskTable(list){
+  const tb = $("tblTasks").querySelector("tbody");
+  const sorted = [...list].sort((a,b)=>(b.doneDate||b.dueDate||"")<(a.doneDate||a.dueDate||"")?-1:1);
+  const shown = sorted.slice(0,120);
+  if (!shown.length){ tb.innerHTML = '<tr><td colspan="6" class="empty">No hay tareas con el filtro actual</td></tr>'; }
+  else tb.innerHTML = shown.map(t=>{
+    const st = classify(t), m = STATUS_META[st];
+    return `<tr>
+      <td>${esc(t.title)}</td>
+      <td style="text-align:left;color:var(--muted)">${esc(t.users.map(u=>u.name).join(", ")||"Sin asignar")}</td>
+      <td style="text-align:left;color:var(--muted)">${esc(t.bucket||"—")}</td>
+      <td>${fmt(t.dueDate)}</td><td>${fmt(t.doneDate)}</td>
+      <td><span class="pill ${m.pill}">${m.label}</span></td>
+    </tr>`;
+  }).join("");
+  $("tasksNote").textContent = list.length>shown.length ? `Mostrando ${shown.length} de ${list.length} tareas (usa los filtros para acotar).` : `${list.length} tareas en el filtro actual.`;
+}
+
+/* ================= UI ================= */
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function setConn(state,text){ $("connDot").className = "dot "+(state==="on"?"on":state==="err"?"err":""); $("connText").textContent = text; }
+function setBusy(b){ $("dash").style.opacity = b ? .45 : 1; $("btnLogin").disabled = b; }
+function showError(msg){ const e=$("errBox"); e.textContent=msg; e.classList.add("show"); }
+function hideError(){ $("errBox").classList.remove("show"); }
+function openCfg(msg){ $("cfgPanel").classList.add("open"); if(msg) showError(msg); }
+
+function armAutoRefresh(){
+  clearInterval(refreshTimer);
+  if (demoMode){ $("refreshMeta").textContent = "Datos de ejemplo — sin auto-refresco"; return; }
+  $("refreshMeta").textContent = "Se actualiza solo cada 5 min";
+  refreshTimer = setInterval(()=>loadFromPlanner(false).catch(()=>{}), REFRESH_MS);
+}
+
+$("btnCfg").onclick = ()=> $("cfgPanel").classList.toggle("open");
+$("btnSaveCfg").onclick = ()=>{
+  store.save($("cfgClient").value.trim(), $("cfgTenant").value.trim()||DEFAULT_TENANT, $("cfgPlanId").value.trim(), $("cfgPlanName").value.trim()||"Periferia Urbana");
+  msalApp = null; hideError();
+  $("cfgPanel").classList.remove("open");
+  loadFromPlanner(true);
+};
+$("btnLogin").onclick = ()=> loadFromPlanner(true);
+$("btnRefresh").onclick = ()=> loadFromPlanner(false);
+$("btnDemo").onclick = loadDemo;
+["fUser","fBucket","fPeriod","fStatus"].forEach(id=> $(id).onchange = render);
+
+/* ================= arranque ================= */
+$("cfgClient").value = store.clientId;
+$("cfgTenant").value = store.tenant;
+$("cfgPlanId").value = store.planId;
+$("cfgPlanName").value = store.planName;
+
+(async ()=>{
+  const hasSnap = loadSnapshot();
+  if (store.clientId){
+    try{ await loadFromPlanner(false); return; }catch(e){}
+  }
+  if (!hasSnap) setConn("", "Sin configurar — abre ⚙ Configuración o mira los datos de ejemplo");
+})();
+</script>
+</body>
+</html>
