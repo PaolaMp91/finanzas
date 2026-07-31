@@ -78,12 +78,13 @@ Planner con la sesión de Microsoft del usuario, y se refresca solo cada 5 minut
 **Filtros:** usuario · período · estado (realizadas en fecha estimada / realizadas fuera de fecha /
 pendientes vencidas / pendientes en plazo).
 
-**KPIs:** % de cumplimiento (a tiempo ÷ completadas con fecha), tareas realizadas en la fecha estimada,
-tareas realizadas fuera de fecha, pendientes vencidas — en total, por usuario (gráfica y tabla) y con el
-detalle tarea por tarea.
+**KPIs:** % de cumplimiento de entrega, entregadas a tiempo, entregadas tarde, vencidas sin entregar
+y avance de la operación — en total, por usuario (gráfica y tabla) y con el detalle tarea por tarea.
 
-> Una tarea cuenta como **"en fecha estimada"** si su fecha de completado es menor o igual a su fecha
-> límite (comparación por día). Las completadas sin fecha límite se listan aparte y no afectan el %.
+> El cumplimiento se mide **contra la fecha de entrega** (fecha de vencimiento de Planner):
+> **a tiempo** = entrega real ≤ fecha de entrega (por día), y
+> **% cumplimiento = a tiempo ÷ exigibles**, donde exigibles = entregadas con fecha + vencidas sin
+> entregar. Las entregadas sin fecha de entrega se listan aparte y no afectan el %.
 
 ## Puesta en marcha (una sola vez)
 

@@ -221,10 +221,10 @@
             <label for="fStatus">Estado de la tarea</label>
             <select id="fStatus">
               <option value="all">Todos los estados</option>
-              <option value="ontime">Realizadas en fecha estimada</option>
-              <option value="late">Realizadas fuera de fecha</option>
-              <option value="nodate">Realizadas sin fecha estimada</option>
-              <option value="overdue">Pendientes vencidas</option>
+              <option value="ontime">Entregadas a tiempo</option>
+              <option value="late">Entregadas tarde</option>
+              <option value="nodate">Entregadas sin fecha de entrega</option>
+              <option value="overdue">Vencidas sin entregar</option>
               <option value="open">Pendientes en plazo</option>
             </select>
           </div>
@@ -240,24 +240,24 @@
     <section>
       <h2 class="sec">Resumen de cumplimiento <span id="scopeTag" style="text-transform:none;letter-spacing:0;color:var(--muted);font-weight:600"></span></h2>
       <div class="grid g5">
-        <div class="card kpi hero"><div class="k-label">% Cumplimiento</div><div class="k-val" id="kPct">—</div><div class="k-sub">a tiempo / completadas con fecha</div></div>
-        <div class="card kpi ok"><div class="k-label">✔ Realizadas en fecha estimada</div><div class="k-val" id="kOnTime">—</div><div class="k-sub" id="kOnTimeSub">&nbsp;</div></div>
-        <div class="card kpi bad"><div class="k-label">✖ Realizadas fuera de fecha</div><div class="k-val" id="kLate">—</div><div class="k-sub" id="kLateSub">&nbsp;</div></div>
-        <div class="card kpi warn"><div class="k-label">⚠ Pendientes vencidas</div><div class="k-val" id="kOverdue">—</div><div class="k-sub">sin completar y ya pasó la fecha</div></div>
+        <div class="card kpi hero"><div class="k-label">% Cumplimiento de entrega</div><div class="k-val" id="kPct">—</div><div class="k-sub">a tiempo ÷ exigibles (entregadas + vencidas)</div></div>
+        <div class="card kpi ok"><div class="k-label">✔ Entregadas a tiempo</div><div class="k-val" id="kOnTime">—</div><div class="k-sub" id="kOnTimeSub">&nbsp;</div></div>
+        <div class="card kpi bad"><div class="k-label">✖ Entregadas tarde</div><div class="k-val" id="kLate">—</div><div class="k-sub" id="kLateSub">&nbsp;</div></div>
+        <div class="card kpi warn"><div class="k-label">⚠ Vencidas sin entregar</div><div class="k-val" id="kOverdue">—</div><div class="k-sub">ya pasó su fecha de entrega</div></div>
         <div class="card kpi"><div class="k-label">Avance de la operación</div><div class="k-val" id="kTotal">—</div><div class="k-sub" id="kTotalSub">&nbsp;</div></div>
       </div>
     </section>
 
     <!-- ============ GRÁFICA POR USUARIO ============ -->
     <section>
-      <h2 class="sec">Tareas completadas por usuario · a tiempo vs. fuera de fecha</h2>
+      <h2 class="sec">Entregas por usuario · a tiempo vs. tarde</h2>
       <div class="card">
         <div class="chart-box"><div class="hbars" id="chartUsers"></div><div class="haxis" id="chartAxis"></div></div>
         <div class="legend-row">
-          <span><span class="sw" style="background:var(--good)"></span><b>✔ En fecha estimada</b> — completada en o antes de la fecha límite</span>
-          <span><span class="sw" style="background:var(--bad)"></span><b>✖ Fuera de fecha</b> — completada después de la fecha límite</span>
+          <span><span class="sw" style="background:var(--good)"></span><b>✔ A tiempo</b> — entregada en o antes de la fecha de entrega</span>
+          <span><span class="sw" style="background:var(--bad)"></span><b>✖ Tarde</b> — entregada después de la fecha de entrega</span>
         </div>
-        <div class="note">Una tarea asignada a varias personas cuenta para cada una. Las tareas completadas sin fecha límite no entran en el % de cumplimiento (se listan aparte en la tabla).</div>
+        <div class="note">Una tarea asignada a varias personas cuenta para cada una. Las tareas entregadas sin fecha de entrega no entran en el % de cumplimiento (se listan aparte en la tabla).</div>
       </div>
     </section>
 
@@ -268,8 +268,8 @@
         <table id="tblUsers">
           <thead><tr>
             <th>Usuario</th><th>Asignadas</th><th>Completadas</th>
-            <th>✔ En fecha</th><th>✖ Fuera de fecha</th><th>Sin fecha est.</th>
-            <th>Pend. en plazo</th><th>⚠ Pend. vencidas</th><th>% Cumplimiento</th>
+            <th>✔ A tiempo</th><th>✖ Tarde</th><th>Sin fecha</th>
+            <th>Pend. en plazo</th><th>⚠ Vencidas</th><th>% Cumplimiento</th>
           </tr></thead>
           <tbody></tbody>
           <tfoot></tfoot>
@@ -284,7 +284,7 @@
         <table id="tblTasks">
           <thead><tr>
             <th>Tarea</th><th style="text-align:left">Asignada a</th><th style="text-align:left">Depósito</th>
-            <th>Fecha estimada</th><th>Fecha completada</th><th>Estado</th>
+            <th>Fecha de entrega</th><th>Entrega real</th><th>Estado</th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -296,7 +296,7 @@
 
     <footer>
       Fuente: Microsoft Planner vía Microsoft Graph (<code>/me/planner/plans</code> → <code>/planner/plans/{id}/tasks</code>), lectura en vivo con la sesión de cada usuario ·
-      “En fecha estimada” = fecha de completado ≤ fecha límite (comparación por día) ·
+      “A tiempo” = entrega real ≤ fecha de entrega (comparación por día) · % cumplimiento = a tiempo ÷ (entregadas con fecha + vencidas sin entregar) ·
       Auto-refresco cada 5 minutos mientras la página está abierta.
     </footer>
   </div>
@@ -343,10 +343,10 @@ function classify(t){
   return "open";
 }
 const STATUS_META = {
-  ontime:{label:"✔ En fecha estimada", pill:"ok"},
-  late:{label:"✖ Fuera de fecha", pill:"no"},
-  nodate:{label:"Completada · sin fecha est.", pill:"gy"},
-  overdue:{label:"⚠ Pendiente vencida", pill:"wa"},
+  ontime:{label:"✔ Entregada a tiempo", pill:"ok"},
+  late:{label:"✖ Entregada tarde", pill:"no"},
+  nodate:{label:"Entregada · sin fecha", pill:"gy"},
+  overdue:{label:"⚠ Vencida sin entregar", pill:"wa"},
   open:{label:"Pendiente en plazo", pill:"gy"},
 };
 
@@ -587,14 +587,15 @@ function render(){
   const cnt = {ontime:0,late:0,nodate:0,open:0,overdue:0};
   list.forEach(t=>cnt[classify(t)]++);
   const {ontime, late, overdue, nodate, open} = cnt;
-  const withDate = ontime+late;
-  const pct = withDate ? Math.round(ontime/withDate*100) : null;
+  // exigibles = entregadas con fecha de entrega + pendientes ya vencidas
+  const exigibles = ontime+late+overdue;
+  const pct = exigibles ? Math.round(ontime/exigibles*100) : null;
 
   $("kPct").textContent = pct===null ? "—" : pct+"%";
   $("kOnTime").textContent = ontime;
-  $("kOnTimeSub").textContent = withDate ? Math.round(ontime/withDate*100)+"% de las completadas con fecha" : "sin completadas con fecha en el filtro";
+  $("kOnTimeSub").textContent = exigibles ? Math.round(ontime/exigibles*100)+"% de las "+exigibles+" exigibles a la fecha" : "sin tareas exigibles en el filtro";
   $("kLate").textContent = late;
-  $("kLateSub").textContent = withDate ? Math.round(late/withDate*100)+"% de las completadas con fecha" : " ";
+  $("kLateSub").textContent = exigibles ? Math.round(late/exigibles*100)+"% de las "+exigibles+" exigibles a la fecha" : " ";
   $("kOverdue").textContent = overdue;
   const done = ontime+late+nodate;
   $("kTotal").textContent = list.length ? Math.round(done/list.length*100)+"%" : "—";
@@ -617,8 +618,8 @@ function renderChart(rows){
   }
   const max = Math.max(...top.map(r=>r.ontime+r.late));
   box.innerHTML = top.map(r=>{
-    const wd = r.ontime+r.late, pct = Math.round(r.ontime/wd*100);
-    const tip = `${r.user}: ✔ ${r.ontime} en fecha · ✖ ${r.late} fuera de fecha · cumplimiento ${pct}%`;
+    const wd = r.ontime+r.late+r.overdue, pct = Math.round(r.ontime/wd*100);
+    const tip = `${r.user}: ✔ ${r.ontime} a tiempo · ✖ ${r.late} tarde · ⚠ ${r.overdue} vencidas sin entregar · cumplimiento ${pct}%`;
     const seg = (n,cls)=> n>0 ? `<div class="seg ${cls}" style="width:${(n/max*100).toFixed(2)}%"></div>` : "";
     return `<div class="hrow" title="${esc(tip)}">
       <div class="hname">${esc(r.user)}</div>
@@ -636,7 +637,7 @@ function renderUserTable(rows){
   if (!rows.length){ tb.innerHTML = '<tr><td colspan="9" class="empty">No hay tareas con el filtro actual</td></tr>'; tf.innerHTML=""; return; }
   const maxDone = Math.max(...rows.map(r=>r.done),1);
   tb.innerHTML = rows.map(r=>{
-    const wd=r.ontime+r.late, pct = wd? Math.round(r.ontime/wd*100) : null;
+    const wd=r.ontime+r.late+r.overdue, pct = wd? Math.round(r.ontime/wd*100) : null;
     const pill = pct===null ? '<span class="pill gy">s/d</span>' : `<span class="pill ${pct>=80?"ok":pct>=50?"wa":"no"}">${pct}%</span>`;
     return `<tr>
       <td>${esc(r.user)}</td><td>${r.total}</td>
@@ -646,7 +647,7 @@ function renderUserTable(rows){
     </tr>`;
   }).join("");
   const s = k => rows.reduce((a,r)=>a+r[k],0);
-  const wd=s("ontime")+s("late");
+  const wd=s("ontime")+s("late")+s("overdue");
   tf.innerHTML = `<tr><td>Total</td><td>${s("total")}</td><td>${s("done")}</td><td>${s("ontime")}</td><td>${s("late")}</td><td>${s("nodate")}</td><td>${s("open")}</td><td>${s("overdue")}</td><td>${wd?Math.round(s("ontime")/wd*100)+"%":"—"}</td></tr>`;
 }
 
