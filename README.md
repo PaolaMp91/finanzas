@@ -1,5 +1,19 @@
 # Dashboards · Boulevard Sur Club Residencial
 
+## 🟩 Minutas & Acciones (conectado a Teams / MeetGeek / Otter.ai) — `minutas.html`
+Módulo que **lee las minutas de reuniones** de Teams, MeetGeek y Otter.ai y genera un tablero con:
+**asignación de tareas** al equipo (quién, qué, para cuándo), **decisiones de socios** (acuerdos y
+aprobaciones) e **historial financiero** (cierres contables y escenarios). Opcionalmente **crea las
+tareas en Microsoft Planner**.
+
+- **Generar/probar:** `python3 build_minutas.py` (sin credenciales usa datos de demo).
+- **Con fuentes reales + Planner:** `python3 refresh_minutas.py` (cada fuente sin credenciales se salta sola).
+- **Puesta en marcha (Secrets, Planner, heurísticas):** ver **[`SETUP-MINUTAS.md`](SETUP-MINUTAS.md)**.
+
+Se publica junto al resto en GitHub Pages: `.../minutas.html`. Pega un solo link en Teams.
+
+---
+
 ## 🟦 Dashboard PMO de Planificación (conectado a Teams) — `dashboard.html`
 Tablero de seguimiento de la **Fase 2** que se **actualiza solo** desde la carpeta de Teams
 `PLANIFICACION › 01. PLANNER › FASE 2 › 02. Seguimiento Semanal`, tomando el archivo con la

@@ -17,6 +17,11 @@ on:
     paths:
       - 'build_dashboard.py'
       - 'refresh_from_teams.py'
+      - 'build_minutas.py'
+      - 'minutas_sources.py'
+      - 'refresh_minutas.py'
+      - 'graph_common.py'
+      - 'push_to_planner.py'
       - '.github/workflows/refresh-dashboard.yml'
 
 permissions:
@@ -54,22 +59,40 @@ jobs:
             python3 refresh_from_teams.py
           fi
 
+      - name: Regenerar Minutas & Acciones
+        # Lee minutas de Teams/MeetGeek/Otter (las fuentes sin credenciales se
+        # saltan solas) y, si PLANNER_ENABLED=1, crea las tareas en Planner.
+        env:
+          AZURE_TENANT_ID:         ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID:         ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET:     ${{ secrets.AZURE_CLIENT_SECRET }}
+          GRAPH_MINUTAS_FOLDER_ID: ${{ secrets.GRAPH_MINUTAS_FOLDER_ID }}
+          GRAPH_MINUTAS_DRIVE_ID:  ${{ secrets.GRAPH_MINUTAS_DRIVE_ID }}
+          MEETGEEK_API_KEY:        ${{ secrets.MEETGEEK_API_KEY }}
+          OTTER_EMAIL:             ${{ secrets.OTTER_EMAIL }}
+          OTTER_PASSWORD:          ${{ secrets.OTTER_PASSWORD }}
+          PLANNER_ENABLED:         ${{ secrets.PLANNER_ENABLED }}
+          PLANNER_PLAN_ID:         ${{ secrets.PLANNER_PLAN_ID }}
+          PLANNER_BUCKET_ID:       ${{ secrets.PLANNER_BUCKET_ID }}
+          PLANNER_ASSIGNEES:       ${{ secrets.PLANNER_ASSIGNEES }}
+        run: python3 refresh_minutas.py
+
       - name: Guardar snapshot si cambió
         run: |
           git config user.name  "pmo-dashboard-bot"
           git config user.email "actions@users.noreply.github.com"
-          if ! git diff --quiet -- dashboard.html; then
-            git add dashboard.html
-            git commit -m "chore(pmo): actualizar dashboard ($(date -u +%Y-%m-%d))"
+          git add dashboard.html minutas.html
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(pmo): actualizar dashboard y minutas ($(date -u +%Y-%m-%d))"
             git push
           else
-            echo "Sin cambios en dashboard.html"
+            echo "Sin cambios en dashboard.html/minutas.html"
           fi
 
       - name: Preparar sitio para Pages
         run: |
           mkdir -p _site
-          cp index.html matriz.html brief.html dashboard.html _site/ 2>/dev/null || true
+          cp index.html matriz.html brief.html dashboard.html minutas.html _site/ 2>/dev/null || true
           # dashboard PMO como página de inicio del sitio publicado
           cp dashboard.html _site/index.html
 

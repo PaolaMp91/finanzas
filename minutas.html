@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="refresh" content="3600"/>
+<title>Minutas & Acciones · Boulevard Sur</title>
+<style>
+  :root{--navy:#0f2c4d;--navy2:#16406e;--blue:#1f73c4;--sky:#e8f0fa;--gold:#c9a227;--teal:#0f9d8c;
+    --bg:#eef1f6;--card:#fff;--line:#e2e8f0;--txt:#1c2733;--muted:#67748a;--soft:#8a96a8;
+    --good:#1f9d57;--bad:#d64545;--warn:#d98a1f;--shadow:0 1px 3px rgba(16,35,60,.07),0 6px 18px rgba(16,35,60,.05);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.45;font-size:13.5px}
+  .wrap{max-width:1300px;margin:0 auto;padding:0 22px 55px}
+  .brand{background:linear-gradient(120deg,var(--navy),var(--navy2) 55%,#1d4f86);color:#fff;padding:24px 0;box-shadow:var(--shadow)}
+  .brand .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;padding-bottom:0}
+  .brand .kick{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase}
+  .brand h1{font-size:23px;font-weight:700;margin-top:4px}
+  .brand .sub{color:#b9cce4;font-size:12.5px;margin-top:5px}
+  .brand .meta{text-align:right;font-size:12px;color:#cdddf0}
+  .live{background:rgba(31,157,87,.22);border:1px solid rgba(82,217,135,.5);color:#aef0c8;font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+  .live.warn{background:rgba(217,138,31,.18);border-color:rgba(217,138,31,.5);color:#f2cf95}
+  .dot{width:7px;height:7px;border-radius:50%;background:#52d987;display:inline-block;box-shadow:0 0 0 3px rgba(82,217,135,.25)}
+  .live.warn .dot{background:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.25)}
+  .nav{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .nav a{font-size:11.5px;font-weight:600;color:#cdddf0;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);padding:4px 11px;border-radius:20px;text-decoration:none}
+  .nav a:hover{background:rgba(255,255,255,.2)}
+  section{margin-top:28px}
+  h2.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.1px;color:var(--navy);font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+  h2.sec::before{content:"";width:4px;height:15px;background:var(--gold);border-radius:3px}
+  h2.sec .hint{font-weight:600;letter-spacing:0;text-transform:none;color:var(--soft);font-size:11.5px;margin-left:auto}
+  .grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+  @media(max-width:1040px){.g4{grid-template-columns:repeat(2,1fr)}.g5{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:560px){.g4,.g5{grid-template-columns:repeat(2,1fr)}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .kpi .kl{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .kv{font-size:24px;font-weight:800;color:var(--navy);margin-top:6px;line-height:1.1}
+  .kpi .ks{color:var(--soft);font-size:11.5px;margin-top:5px}
+  .kpi.gold .kv{color:var(--gold)}.kpi.teal .kv{color:var(--teal)}.kpi.warn .kv{color:var(--warn)}.kpi.bad .kv{color:var(--bad)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:10px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;background:#f7f9fc}
+  tbody tr:hover{background:#f6f9fd}
+  .resp{display:inline-block;font-size:10.5px;font-weight:700;color:var(--blue);background:var(--sky);border:1px solid #cfe0f2;padding:2px 8px;border-radius:20px}
+  .resp.no{color:var(--bad);background:#fbe9e9;border-color:#f2c4c4}
+  .src{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:1px 7px;border-radius:20px;color:#fff}
+  .src.teams{background:#5059c9}.src.meetgeek{background:#0f9d8c}.src.otter{background:#1f73c4}.src.demo{background:#8a96a8}
+  .tg{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:1px 7px;border-radius:20px;margin-right:6px}
+  .tg.venc{color:#fff;background:var(--bad)}.tg.pend{color:#8a5a12;background:#fbe6c2;border:1px solid #eccf98}
+  .dd{color:var(--bad);font-weight:800}
+  .who{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+  .chip{background:var(--sky);color:var(--blue);font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;border:1px solid #cfe0f2}
+  .chip.socio{background:#fff7e6;color:#8a6d1f;border-color:#f0d79a}
+  .chip.fin{background:#e9f6f3;color:#0b6b60;border-color:#bfe6df}
+  .respcard h3{font-size:13.5px;color:var(--navy);display:flex;align-items:center;gap:8px}
+  .respcard .cnt{font-size:10px;font-weight:800;color:var(--muted);background:#eef2f7;border:1px solid var(--line);padding:1px 7px;border-radius:20px}
+  .respcard ul{list-style:none;margin-top:8px}
+  .respcard li{padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+  .respcard li:last-child{border:none}
+  .respcard .meta{color:var(--soft);font-size:10.5px;margin-top:3px}
+  .fin{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .fin:last-child{border:none}
+  .fin .badge{flex:0 0 auto;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:3px 9px;border-radius:8px;color:#fff}
+  .fin .badge.cierre{background:var(--navy2)}.fin .badge.escenario{background:var(--teal)}.fin .badge.indicador{background:var(--gold)}
+  .fin .fdate{color:var(--soft);font-size:11px;white-space:nowrap;margin-left:auto}
+  .empty{color:var(--soft);font-style:italic;font-size:12.5px;padding:14px 0}
+  footer{color:var(--muted);font-size:11.5px;border-top:1px solid var(--line);padding-top:18px;margin-top:34px}
+  footer code{background:#eef2f7;padding:1px 6px;border-radius:4px;color:var(--navy);font-size:11px}
+  footer b{color:var(--navy)}
+  .banner{background:#fff7e6;border:1px solid #f0d79a;color:#8a6d1f;border-radius:10px;padding:11px 14px;font-size:12px;margin-top:14px;display:flex;gap:9px;align-items:flex-start}
+  .banner b{color:#6b520f}
+</style>
+</head>
+<body>
+  <header class="brand">
+    <div class="wrap">
+      <div>
+        <div class="kick">Periferia Urbana · Boulevard Sur</div>
+        <h1>Minutas &amp; Acciones</h1>
+        <div class="sub">Tareas del equipo, decisiones de socios e historial financiero — generados de las minutas.</div>
+        <div class="nav">
+          <a href="dashboard.html">◧ PMO</a>
+          <a href="index.html">◧ Financiero</a>
+          <a href="matriz.html">◧ Matriz</a>
+          <a href="minutas.html">◧ Minutas</a>
+        </div>
+      </div>
+      <div class="meta">
+        <div id="liveBadge"></div>
+        <div style="margin-top:9px" id="fuentes">—</div>
+        <div style="margin-top:3px">Generado <b id="gen">—</b></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="demoBanner"></div>
+
+    <section>
+      <div class="grid g5" id="kpis"></div>
+    </section>
+
+    <section>
+      <h2 class="sec">Asignación de tareas por responsable <span class="hint" id="thint"></span></h2>
+      <div class="grid g4" id="responsables"></div>
+    </section>
+
+    <section>
+      <h2 class="sec">Todas las tareas <span class="hint">extraídas de las minutas</span></h2>
+      <div class="card" style="padding:0;overflow-x:auto">
+        <table>
+          <thead><tr><th>Tarea</th><th>Responsable</th><th>Vence</th><th>Reunión</th><th>Fuente</th></tr></thead>
+          <tbody id="tareasBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="sec">Decisiones de socios <span class="hint">acuerdos y aprobaciones</span></h2>
+      <div class="card" id="decisiones"></div>
+    </section>
+
+    <section>
+      <h2 class="sec">Historial financiero <span class="hint">cierres contables y escenarios</span></h2>
+      <div class="card" id="financiero"></div>
+    </section>
+
+    <footer>
+      <p>Este tablero se genera automáticamente de las minutas de <b>Teams</b>, <b>MeetGeek</b> y <b>Otter.ai</b>
+      con <code>refresh_minutas.py</code> y se publica en GitHub Pages. Pega un solo link en Teams y siempre verá la última versión.</p>
+      <p style="margin-top:6px">Las tareas también pueden crearse en <b>Microsoft Planner</b> (ver <code>SETUP-MINUTAS.md</code>).</p>
+    </footer>
+  </div>
+
+<script>
+const D = {"tareas": [{"tarea": "Ingeniería queda de enviar el cronograma actualizado de obra el 2026-08-04.", "responsable": "Ingeniería", "vence": "2026-08-04", "estado": "pendiente", "fuente": "otter", "reunion": "Comité semanal Boulevard Sur", "fecha": "2026-07-28", "url": "", "vencida": false}, {"tarea": "Ventas se compromete a preparar la proyección de absorción para la próxima semana.", "responsable": "Ventas", "vence": "", "estado": "pendiente", "fuente": "otter", "reunion": "Comité semanal Boulevard Sur", "fecha": "2026-07-28", "url": "", "vencida": false}, {"tarea": "PMO revisar homologaciones pendientes con la municipalidad antes del 2026-08-08.", "responsable": "PMO", "vence": "2026-08-08", "estado": "pendiente", "fuente": "otter", "reunion": "Comité semanal Boulevard Sur", "fecha": "2026-07-28", "url": "", "vencida": false}, {"tarea": "Actualizar el modelo financiero con tasa BI 8%", "responsable": "Contabilidad", "vence": "2026-07-31", "estado": "pendiente", "fuente": "meetgeek", "reunion": "Junta de socios · Flujo financiero", "fecha": "2026-07-21", "url": "", "vencida": false}, {"tarea": "Paola coordinar la reunión con G&T para comparar tasa.", "responsable": "Paola", "vence": "", "estado": "pendiente", "fuente": "meetgeek", "reunion": "Junta de socios · Flujo financiero", "fecha": "2026-07-21", "url": "", "vencida": false}], "decisiones": [{"decision": "Se decide aprobar el presupuesto de construcción de Fase 2 en Q180 millones.", "socios": ["Junta"], "fecha": "2026-07-28", "reunion": "Comité semanal Boulevard Sur", "fuente": "otter", "url": ""}, {"decision": "Los socios acuerdan mantener el Escenario A (vender 25/mes) por mayor TIR de accionistas.", "socios": ["Junta"], "fecha": "2026-07-28", "reunion": "Comité semanal Boulevard Sur", "fuente": "otter", "url": ""}, {"decision": "Se decide contratar el financiamiento con Banco Industrial al 8%.", "socios": ["Junta"], "fecha": "2026-07-21", "reunion": "Junta de socios · Flujo financiero", "fuente": "meetgeek", "url": ""}, {"decision": "Contabilidad enviar el cierre contable de mayo 2026 a los socios.", "socios": ["Junta"], "fecha": "2026-07-21", "reunion": "Junta de socios · Flujo financiero", "fuente": "meetgeek", "url": ""}], "financiero": [{"tipo": "indicador", "nota": "Se decide aprobar el presupuesto de construcción de Fase 2 en Q180 millones.", "tags": ["Q180 millones"], "fecha": "2026-07-28", "reunion": "Comité semanal Boulevard Sur", "fuente": "otter", "url": ""}, {"tipo": "escenario", "nota": "Los socios acuerdan mantener el Escenario A (vender 25/mes) por mayor TIR de accionistas.", "tags": ["TIR", "escenario"], "fecha": "2026-07-28", "reunion": "Comité semanal Boulevard Sur", "fuente": "otter", "url": ""}, {"tipo": "cierre", "nota": "Contabilidad presenta el cierre contable de junio 2026: utilidad neta Q4.1 M, margen 11.4%.", "tags": ["Q4.1 M", "11.4%", "margen", "utilidad", "cierre"], "fecha": "2026-07-28", "reunion": "Comité semanal Boulevard Sur", "fuente": "otter", "url": ""}, {"tipo": "indicador", "nota": "Se decide contratar el financiamiento con Banco Industrial al 8%.", "tags": ["8%"], "fecha": "2026-07-21", "reunion": "Junta de socios · Flujo financiero", "fuente": "meetgeek", "url": ""}, {"tipo": "escenario", "nota": "Escenario B descartado por mayor costo financiero (Q28.8 M vs Q23.1 M).", "tags": ["Q28.8 M", "Q23.1 M", "escenario"], "fecha": "2026-07-21", "reunion": "Junta de socios · Flujo financiero", "fuente": "meetgeek", "url": ""}, {"tipo": "cierre", "nota": "Contabilidad enviar el cierre contable de mayo 2026 a los socios.", "tags": ["cierre"], "fecha": "2026-07-21", "reunion": "Junta de socios · Flujo financiero", "fuente": "meetgeek", "url": ""}], "por_responsable": {"Contabilidad": [{"tarea": "Actualizar el modelo financiero con tasa BI 8%", "responsable": "Contabilidad", "vence": "2026-07-31", "estado": "pendiente", "fuente": "meetgeek", "reunion": "Junta de socios · Flujo financiero", "fecha": "2026-07-21", "url": "", "vencida": false}], "Ingeniería": [{"tarea": "Ingeniería queda de enviar el cronograma actualizado de obra el 2026-08-04.", "responsable": "Ingeniería", "vence": "2026-08-04", "estado": "pendiente", "fuente": "otter", "reunion": "Comité semanal Boulevard Sur", "fecha": "2026-07-28", "url": "", "vencida": false}], "PMO": [{"tarea": "PMO revisar homologaciones pendientes con la municipalidad antes del 2026-08-08.", "responsable": "PMO", "vence": "2026-08-08", "estado": "pendiente", "fuente": "otter", "reunion": "Comité semanal Boulevard Sur", "fecha": "2026-07-28", "url": "", "vencida": false}], "Paola": [{"tarea": "Paola coordinar la reunión con G&T para comparar tasa.", "responsable": "Paola", "vence": "", "estado": "pendiente", "fuente": "meetgeek", "reunion": "Junta de socios · Flujo financiero", "fecha": "2026-07-21", "url": "", "vencida": false}], "Ventas": [{"tarea": "Ventas se compromete a preparar la proyección de absorción para la próxima semana.", "responsable": "Ventas", "vence": "", "estado": "pendiente", "fuente": "otter", "reunion": "Comité semanal Boulevard Sur", "fecha": "2026-07-28", "url": "", "vencida": false}]}, "meta": {"reuniones": 2, "fuentes": ["meetgeek", "otter"], "n_tareas": 5, "n_pend": 5, "n_venc": 0, "n_sinasig": 0, "n_decisiones": 4, "n_financiero": 6, "n_responsables": 5, "generado": "2026-07-31 12:28", "es_demo": true, "ultima_reunion": "2026-07-28"}};
+const $ = (id) => document.getElementById(id);
+const esc = (s) => (s||"").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const M = D.meta;
+
+// badge + cabecera
+$("gen").textContent = M.generado;
+$("fuentes").textContent = "Fuentes: " + M.fuentes.join(", ") + " · " + M.reuniones + " reuniones";
+$("liveBadge").innerHTML = M.es_demo
+  ? '<span class="live warn"><span class="dot"></span>Vista previa (datos de demo)</span>'
+  : '<span class="live"><span class="dot"></span>Conectado a minutas</span>';
+
+if (M.es_demo){
+  $("demoBanner").innerHTML = '<div class="banner"><b>Vista previa.</b>&nbsp;'
+    + 'Aún no hay minutas conectadas, así que se muestran datos de ejemplo. '
+    + 'Configura las credenciales de Teams / MeetGeek / Otter.ai (ver SETUP-MINUTAS.md) '
+    + 'para que el tablero se llene con tus reuniones reales.</div>';
+}
+
+// KPIs
+const kpis = [
+  {l:"Tareas", v:M.n_tareas, ks:M.n_pend+" pendientes", c:""},
+  {l:"Vencidas", v:M.n_venc, ks:"requieren acción", c:M.n_venc>0?"bad":"teal"},
+  {l:"Sin asignar", v:M.n_sinasig, ks:"falta responsable", c:M.n_sinasig>0?"warn":"teal"},
+  {l:"Decisiones socios", v:M.n_decisiones, ks:"acuerdos registrados", c:"gold"},
+  {l:"Mov. financieros", v:M.n_financiero, ks:"cierres / escenarios", c:"teal"},
+];
+$("kpis").innerHTML = kpis.map(k =>
+  `<div class="card kpi ${k.c}"><div class="kl">${k.l}</div><div class="kv">${k.v}</div><div class="ks">${k.ks}</div></div>`
+).join("");
+
+// tarjetas por responsable
+const pr = D.por_responsable || {};
+$("thint").textContent = M.n_responsables + " responsables";
+$("responsables").innerHTML = Object.keys(pr).length ? Object.entries(pr).map(([resp, ts]) => `
+  <div class="card respcard">
+    <h3><span class="resp ${resp==='Sin asignar'?'no':''}">${esc(resp)}</span><span class="cnt">${ts.length}</span></h3>
+    <ul>${ts.slice(0,6).map(t => `
+      <li>${t.vencida?'<span class="tg venc">Vencida</span>':'<span class="tg pend">Pend.</span>'}${esc(t.tarea)}
+        <div class="meta">${t.vence?('Vence '+(t.vencida?'<span class="dd">':'')+t.vence+(t.vencida?'</span>':'')+' · '):''}${esc(t.reunion)}</div>
+      </li>`).join("")}${ts.length>6?`<li class="meta">+ ${ts.length-6} más…</li>`:''}</ul>
+  </div>`).join("") : '<div class="empty">No se detectaron tareas en las minutas.</div>';
+
+// tabla de todas las tareas
+$("tareasBody").innerHTML = D.tareas.length ? D.tareas.map(t => `
+  <tr>
+    <td>${t.vencida?'<span class="tg venc">Vencida</span>':''}${esc(t.tarea)}</td>
+    <td><span class="resp ${t.responsable==='Sin asignar'?'no':''}">${esc(t.responsable)}</span></td>
+    <td>${t.vence?(t.vencida?'<span class="dd">'+t.vence+'</span>':t.vence):'<span style="color:var(--soft)">—</span>'}</td>
+    <td>${esc(t.reunion)}<div style="color:var(--soft);font-size:11px">${t.fecha||''}</div></td>
+    <td><span class="src ${t.fuente||'demo'}">${esc(t.fuente||'demo')}</span></td>
+  </tr>`).join("") : '<tr><td colspan="5" class="empty">Sin tareas.</td></tr>';
+
+// decisiones de socios
+$("decisiones").innerHTML = D.decisiones.length ? D.decisiones.map(d => `
+  <div class="fin">
+    <span class="badge escenario">Decisión</span>
+    <div style="flex:1">
+      <div>${esc(d.decision)}</div>
+      <div class="who">${(d.socios||[]).map(s=>`<span class="chip socio">${esc(s)}</span>`).join("")}
+        <span class="chip">${esc(d.reunion)}</span><span class="src ${d.fuente||'demo'}">${esc(d.fuente||'demo')}</span></div>
+    </div>
+    <span class="fdate">${d.fecha||''}</span>
+  </div>`).join("") : '<div class="empty">No se detectaron decisiones de socios en las minutas.</div>';
+
+// historial financiero
+$("financiero").innerHTML = D.financiero.length ? D.financiero.map(f => `
+  <div class="fin">
+    <span class="badge ${f.tipo}">${esc(f.tipo)}</span>
+    <div style="flex:1">
+      <div>${esc(f.nota)}</div>
+      <div class="who">${(f.tags||[]).map(t=>`<span class="chip fin">${esc(t)}</span>`).join("")}
+        <span class="chip">${esc(f.reunion)}</span><span class="src ${f.fuente||'demo'}">${esc(f.fuente||'demo')}</span></div>
+    </div>
+    <span class="fdate">${f.fecha||''}</span>
+  </div>`).join("") : '<div class="empty">No se detectaron cierres ni escenarios financieros en las minutas.</div>';
+</script>
+</body>
+</html>
